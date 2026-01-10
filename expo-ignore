@@ -1,0 +1,7 @@
+backend/
+*.log
+*.pid
+*.seed
+*.pid.lock
+test-backend.sh
+setup-backend.sh
