@@ -1,52 +1,78 @@
 SERVER RUNNING INSTRUCTIONS
 ===========================
 
-This document outlines how to start the servers for the Billboard Booking Application.
+This document outlines how to run all three components of the Billboard Booking Application:
+1. Backend Server (Node.js/Express)
+2. Mobile Application (React Native/Expo)
+3. Admin Web Dashboard (React/Vite)
+
+--------------------------------------------------------------------------------
 
 1. BACKEND SERVER
 -----------------
 Location: ./backend
-Description: Node.js + Express API server with MongoDB connection.
+Description: The core API server that handles database connections, authentication, and payments.
 
 Prerequisites:
-- Ensure MongoDB is running locally or you have a valid connection string in backend/.env
-- Ensure all dependencies are installed (cd backend && npm install)
+- MongoDB running locally or a valid connection string in backend/.env
+- Dependencies installed: cd backend && npm install
 
 How to Run:
-1. Open a terminal.
-2. Navigate to the backend directory:
+1. Open Terminal 1.
+2. Navigate to backend:
    cd backend
 3. Start the server:
    npm run dev
-   (This runs with nodemon for hot-reloading)
 
-   OR for production mode:
-   npm start
+   (Runs on http://localhost:5000 by default)
 
-The backend usually runs on port 5000 (http://localhost:5000).
+--------------------------------------------------------------------------------
 
-
-2. FRONTEND APPLICATION (Expo)
-------------------------------
+2. MOBILE APPLICATION SERVER (Expo)
+-----------------------------------
 Location: ./ (Root Directory)
-Description: React Native / Expo application for Mobile and Web.
+Description: The mobile app interface for Users, Billboard Owners, and Businesses.
 
 Prerequisites:
-- Ensure all dependencies are installed (npm install)
-- Create a .env file in the root directory with necessary keys (e.g., EXPO_PUBLIC_API_BASE_URL, EXPO_PUBLIC_HUGGING_FACE_TOKEN).
+- Dependencies installed: npm install
+- Root .env file configured.
 
 How to Run:
-1. Open a new terminal.
-2. Ensure you are in the project root:
+1. Open Terminal 2.
+2. Navigate to project root:
    c:\Users\jashw\Desktop\bill\project v1.0
-3. Start the Expo development server:
+3. Start Expo:
    npm run dev
 
-This will start the Metro bundler. You can press 'w' for web, 'a' for Android, or 'i' for iOS (if available).
+   (Runs Metro Bundler on http://localhost:8081)
+   - Press 'a' to run on Android Emulator.
+   - Press 'w' to run in Web Browser (Mobile View).
+   - Scan QR code with Expo Go app for physical device.
 
+--------------------------------------------------------------------------------
 
-SUMMARY OF TERMINALS
---------------------
-You will typically need two separate terminals running simultaneously:
-Terminal 1: Backend Server (cd backend && npm run dev)
-Terminal 2: Frontend App (npm run dev)
+3. ADMIN WEB APPLICATION SERVER
+-------------------------------
+Location: ./admin-web
+Description: The web-based dashboard for System Administrators to manage billboards and ads.
+
+Prerequisites:
+- Dependencies installed: cd admin-web && npm install
+
+How to Run:
+1. Open Terminal 3.
+2. Navigate to admin-web:
+   cd admin-web
+3. Start the dev server:
+   npm run dev
+
+   (Runs on http://localhost:5173 by default)
+
+--------------------------------------------------------------------------------
+
+SUMMARY
+-------
+You should have 3 terminals running:
+[Terminal 1] Backend:   cd backend   -> npm run dev
+[Terminal 2] Mobile:    (Root)       -> npm run dev
+[Terminal 3] Admin Web: cd admin-web -> npm run dev
