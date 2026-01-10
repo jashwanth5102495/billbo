@@ -1,0 +1,52 @@
+SERVER RUNNING INSTRUCTIONS
+===========================
+
+This document outlines how to start the servers for the Billboard Booking Application.
+
+1. BACKEND SERVER
+-----------------
+Location: ./backend
+Description: Node.js + Express API server with MongoDB connection.
+
+Prerequisites:
+- Ensure MongoDB is running locally or you have a valid connection string in backend/.env
+- Ensure all dependencies are installed (cd backend && npm install)
+
+How to Run:
+1. Open a terminal.
+2. Navigate to the backend directory:
+   cd backend
+3. Start the server:
+   npm run dev
+   (This runs with nodemon for hot-reloading)
+
+   OR for production mode:
+   npm start
+
+The backend usually runs on port 5000 (http://localhost:5000).
+
+
+2. FRONTEND APPLICATION (Expo)
+------------------------------
+Location: ./ (Root Directory)
+Description: React Native / Expo application for Mobile and Web.
+
+Prerequisites:
+- Ensure all dependencies are installed (npm install)
+- Create a .env file in the root directory with necessary keys (e.g., EXPO_PUBLIC_API_BASE_URL, EXPO_PUBLIC_HUGGING_FACE_TOKEN).
+
+How to Run:
+1. Open a new terminal.
+2. Ensure you are in the project root:
+   c:\Users\jashw\Desktop\bill\project v1.0
+3. Start the Expo development server:
+   npm run dev
+
+This will start the Metro bundler. You can press 'w' for web, 'a' for Android, or 'i' for iOS (if available).
+
+
+SUMMARY OF TERMINALS
+--------------------
+You will typically need two separate terminals running simultaneously:
+Terminal 1: Backend Server (cd backend && npm run dev)
+Terminal 2: Frontend App (npm run dev)
