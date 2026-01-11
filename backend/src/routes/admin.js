@@ -9,11 +9,17 @@ const bcrypt = require('bcryptjs');
 // Create Billboard Owner
 router.post('/create-owner', auth, isAdmin, async (req, res) => {
   try {
-    const { username, password, name, phoneNumber } = req.body;
+    const { username, password, name, phoneNumber, email } = req.body;
+
+    // Build query conditions
+    const orConditions = [{ username }];
+    if (phoneNumber) {
+      orConditions.push({ phoneNumber });
+    }
 
     // Check if user already exists
     let user = await User.findOne({ 
-      $or: [{ username }, { phoneNumber: phoneNumber || null }] 
+      $or: orConditions
     });
 
     if (user) {
@@ -23,13 +29,17 @@ router.post('/create-owner', auth, isAdmin, async (req, res) => {
       });
     }
 
-    user = new User({
+    const userData = {
       username,
       password, // Password will be hashed by pre-save hook
       name,
-      phoneNumber,
       role: 'billboard_owner'
-    });
+    };
+
+    if (phoneNumber) userData.phoneNumber = phoneNumber;
+    if (email) userData.email = email;
+
+    user = new User(userData);
 
     await user.save();
 
@@ -129,8 +139,11 @@ router.post('/owners/:id/billboards', auth, isAdmin, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Owner not found' });
     }
 
+    // Remove id/ID field from body to prevent CastError
+    const { id, _id, ...billboardData } = req.body;
+
     const billboard = new Billboard({
-      ...req.body,
+      ...billboardData,
       ownerId: owner._id
     });
 

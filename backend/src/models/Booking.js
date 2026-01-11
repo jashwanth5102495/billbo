@@ -48,6 +48,16 @@ const bookingSchema = new mongoose.Schema({
     required: true,
     min: [1, 'Duration must be at least 1 hour']
   },
+  videoDuration: {
+    type: Number,
+    min: [0, 'Video duration cannot be negative'],
+    default: 0
+  },
+  reputation: {
+    type: Number,
+    min: [0, 'Reputation cannot be negative'],
+    default: 40
+  },
   price: {
     type: Number,
     required: true,
