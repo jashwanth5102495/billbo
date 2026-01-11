@@ -9,20 +9,39 @@ import {
   ScrollView,
   Alert,
   Platform,
+  ActivityIndicator,
+  Image,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { ArrowLeft, Monitor, Calendar, User, Phone, Upload } from 'lucide-react-native';
+import { ArrowLeft, Monitor, Calendar, User, Phone, Upload, MapPin } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 
 export default function ConnectScreenScreen() {
+  // Force reload
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const [brand, setBrand] = useState('');
   const [purchaseDate, setPurchaseDate] = useState('');
   const [contactPerson, setContactPerson] = useState('');
   const [contactNumber, setContactNumber] = useState('');
+  const [address, setAddress] = useState('');
   const [images, setImages] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // Modal State
+  const [showModal, setShowModal] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalMessage, setModalMessage] = useState('');
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const handleModalClose = () => {
+    setShowModal(false);
+    if (isSuccess) {
+      router.back();
+    }
+  };
 
   const styles = StyleSheet.create({
     container: {
@@ -145,13 +164,73 @@ export default function ConnectScreenScreen() {
       fontSize: 16,
       fontWeight: '600',
     },
+    // Modal Styles
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    },
+    modalContent: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: 16,
+      padding: 24,
+      width: '100%',
+      maxWidth: 400,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 5,
+    },
+    modalContentDark: {
+      backgroundColor: '#1F2937',
+    },
+    modalTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      marginBottom: 12,
+      color: '#111827',
+      textAlign: 'center',
+    },
+    modalMessage: {
+      fontSize: 16,
+      color: '#4B5563',
+      textAlign: 'center',
+      marginBottom: 24,
+      lineHeight: 24,
+    },
+    textDark: {
+      color: '#FFFFFF',
+    },
+    modalButton: {
+      backgroundColor: '#10B981',
+      paddingVertical: 12,
+      paddingHorizontal: 32,
+      borderRadius: 8,
+      width: '100%',
+      alignItems: 'center',
+    },
+    modalButtonText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: '600',
+    },
   });
 
   const handleUploadImages = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
     if (permissionResult.granted === false) {
-      Alert.alert('Permission Required', 'Please allow access to your media library to upload images.');
+      setModalTitle('Permission Required');
+      setModalMessage('Please allow access to your media library to upload images.');
+      setIsSuccess(false);
+      setShowModal(true);
       return;
     }
 
@@ -168,15 +247,22 @@ export default function ConnectScreenScreen() {
   };
 
   const handleSubmit = async () => {
-    if (!brand || !purchaseDate || !contactPerson || !contactNumber) {
-      Alert.alert('Missing Information', 'Please fill in all required fields.');
+    if (!brand || !purchaseDate || !contactPerson || !contactNumber || !address) {
+      setModalTitle('Missing Information');
+      setModalMessage('Please fill in all required fields.');
+      setIsSuccess(false);
+      setShowModal(true);
       return;
     }
 
+    setLoading(true);
     try {
       const API_URL = Platform.OS === 'android' 
         ? 'http://10.0.2.2:3000/api' 
         : 'http://localhost:3000/api';
+      
+      console.log('Submitting request to:', API_URL);
+      console.log('Data:', { brand, purchaseDate, contactPerson, contactNumber, address });
 
       const response = await fetch(`${API_URL}/requests/connect`, {
         method: 'POST',
@@ -188,29 +274,36 @@ export default function ConnectScreenScreen() {
           purchaseDate,
           contactPerson,
           contactNumber,
+          address,
           images
         }),
       });
 
+      console.log('Response status:', response.status);
       const data = await response.json();
+      console.log('Response data:', data);
 
       if (data.success) {
-        Alert.alert(
-          'Request Submitted',
-          'Our technician will reach you shortly to verify your screen and complete the connection process.',
-          [
-            {
-              text: 'OK',
-              onPress: () => router.back(),
-            },
-          ]
-        );
+        setModalTitle('Request Submitted');
+        setModalMessage('Our technician will reach you out soon and examin the billboard');
+        setIsSuccess(true);
+        setShowModal(true);
       } else {
-        Alert.alert('Error', data.message || 'Failed to submit request');
+        const errorMsg = data.message || 'Failed to submit request';
+        setModalTitle('Error');
+        setModalMessage(errorMsg);
+        setIsSuccess(false);
+        setShowModal(true);
       }
     } catch (error) {
       console.error('Submit request error:', error);
-      Alert.alert('Error', 'Failed to submit request. Please try again.');
+      const errorMsg = 'Failed to submit request. Please try again. ' + (error instanceof Error ? error.message : String(error));
+      setModalTitle('Error');
+      setModalMessage(errorMsg);
+      setIsSuccess(false);
+      setShowModal(true);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -261,6 +354,21 @@ export default function ConnectScreenScreen() {
             </View>
           </View>
 
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Screen Address *</Text>
+            <View style={styles.inputContainer}>
+              <MapPin size={20} color={isDark ? '#9CA3AF' : '#6B7280'} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter screen location address"
+                placeholderTextColor={isDark ? '#6B7280' : '#9CA3AF'}
+                value={address}
+                onChangeText={setAddress}
+                multiline
+              />
+            </View>
+          </View>
+
           <View style={styles.imageUploadSection}>
             <Text style={styles.inputLabel}>Screen Images</Text>
             <TouchableOpacity style={styles.uploadButton} onPress={handleUploadImages}>
@@ -302,10 +410,36 @@ export default function ConnectScreenScreen() {
           </View>
         </View>
 
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitButtonText}>Submit Request</Text>
+        <TouchableOpacity 
+          style={[styles.submitButton, loading && { opacity: 0.7 }]} 
+          onPress={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.submitButtonText}>Submit Request</Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Custom Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showModal}
+        onRequestClose={handleModalClose}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, isDark && styles.modalContentDark]}>
+            <Text style={[styles.modalTitle, isDark && styles.textDark]}>{modalTitle}</Text>
+            <Text style={[styles.modalMessage, isDark && styles.textDark]}>{modalMessage}</Text>
+            <TouchableOpacity style={styles.modalButton} onPress={handleModalClose}>
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

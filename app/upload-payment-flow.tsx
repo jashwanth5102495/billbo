@@ -12,6 +12,7 @@ export default function UploadPaymentFlowScreen() {
   const totalPrice = parseFloat(params.totalPrice as string) || 0;
   const reputation = parseInt(params.reputation as string) || 40;
   const days = parseInt(params.days as string) || 1;
+  const duration = parseInt(params.duration as string) || 5;
   const selectedPackages = params.selectedPackages ? JSON.parse(params.selectedPackages as string) : [];
   const billboardName = params.billboardName as string || 'Billboard';
   
@@ -43,20 +44,21 @@ export default function UploadPaymentFlowScreen() {
     setLoading(true);
     
     // Construct cart items for Razorpay checkout
-    // Calculate per-item price based on total price
-    // Formula: Total = Sum(ItemBase * Days * RepFactor)
-    // We can just calculate ItemPrice = ItemBase * Days * RepFactor
+    // Calculate per-item price based on consumed time logic (same as calculate-price screen)
+    // Formula: Cost = (SlotPrice / SlotDuration) * Consumed Time * Days
     
-    const reputationFactor = reputation / 40; // 40 is base rep
-    
+    const SLOT_DURATION_SECONDS = 21600; // 6 hours * 60 * 60
+    const dailyConsumedSeconds = duration * reputation;
+
     const cartItems = selectedPackages.map((pkg: any) => {
-      const itemPrice = (pkg.price || 0) * days * reputationFactor;
+      const costPerSecond = (pkg.price || 0) / SLOT_DURATION_SECONDS;
+      const itemPrice = costPerSecond * dailyConsumedSeconds * days;
       
       return {
         id: pkg.id,
         name: `${billboardName} - ${pkg.name}`,
-        desc: `Duration: ${days} Day(s), Reputation: ${reputation}, Time: ${pkg.time}`,
-        price: `₹${itemPrice.toFixed(2)}`,
+        desc: `Duration: ${days} Day(s), Reputation: ${reputation}, Time: ${pkg.time}, Length: ${duration}s`,
+        price: `₹${Math.round(itemPrice).toFixed(2)}`,
         billboardId: params.billboardId,
         billboardName: billboardName,
         location: params.location || 'Unknown Location',
@@ -65,7 +67,8 @@ export default function UploadPaymentFlowScreen() {
         slotTime: pkg.time,
         videoUri: videoUri, // Pass the local video URI
         reputation: reputation,
-        days: days
+        days: days,
+        duration: duration
       };
     });
 
@@ -235,6 +238,10 @@ export default function UploadPaymentFlowScreen() {
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Duration</Text>
             <Text style={styles.summaryValue}>{days} Day(s)</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Video Length</Text>
+            <Text style={styles.summaryValue}>{duration} Seconds</Text>
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Reputation Score</Text>

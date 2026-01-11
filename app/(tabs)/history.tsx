@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Clock, Calendar, MapPin, CheckCircle, XCircle, AlertCircle } from 'lucide-react-native';
+import { Clock, Calendar, MapPin, CheckCircle, XCircle, AlertCircle, Activity } from 'lucide-react-native';
 import { useTheme } from './ThemeContext';
 import { useBookings } from './BookingContext';
 
@@ -200,6 +200,18 @@ export default function HistoryScreen() {
                   <Calendar size={16} color={isDarkMode ? '#9CA3AF' : '#6B7280'} />
                   <Text style={styles.detailText}>{item.dateRange}</Text>
                 </View>
+                {item.videoDuration && (
+                  <View style={styles.detailRow}>
+                    <Clock size={16} color={isDarkMode ? '#9CA3AF' : '#6B7280'} />
+                    <Text style={styles.detailText}>{item.videoDuration} sec video</Text>
+                  </View>
+                )}
+                {item.reputation && (
+                  <View style={styles.detailRow}>
+                    <Activity size={16} color={isDarkMode ? '#9CA3AF' : '#6B7280'} />
+                    <Text style={styles.detailText}>{item.reputation} reps</Text>
+                  </View>
+                )}
               </View>
               <Text style={styles.priceText}>{item.amount}</Text>
             </View>

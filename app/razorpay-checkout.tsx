@@ -164,8 +164,10 @@ export default function RazorpayCheckoutScreen() {
           for (const item of itemsToProcess) {
              const timeData = parseTime(item.time || item.slotTime || '');
              
-             // Clean price
-             const priceNum = parseInt((item.price || '0').toString().replace(/[^0-9]/g, ''));
+             // Clean price - safely parse currency string
+             // e.g. "₹444.00" -> 444
+             const priceString = (item.price || '0').toString().replace(/[^0-9.]/g, '');
+             const priceNum = Math.round(parseFloat(priceString));
              
              // Upload video if present
              let videoUrl = item.videoUri || 'https://example.com/placeholder.mp4';
@@ -230,6 +232,8 @@ export default function RazorpayCheckoutScreen() {
                startTime: timeData.start,
                endTime: timeData.end,
                duration: 1, 
+               videoDuration: item.duration || 0,
+               reputation: item.reputation || 40,
                price: priceNum,
                content: {
                  type: 'video',

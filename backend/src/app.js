@@ -68,7 +68,24 @@ mongoose.connect(process.env.MONGODB_URI, {
 })
 .catch((error) => {
   console.error('❌ MongoDB connection error:', error);
-  process.exit(1);
+  // Don't exit process in dev, just log error so server stays up for health check
+  if (process.env.NODE_ENV !== 'development') {
+    process.exit(1);
+  }
+});
+
+// Middleware to check database connection
+app.use((req, res, next) => {
+  // Allow health check even if DB is down
+  if (req.path === '/api/health') return next();
+  
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({
+      success: false,
+      message: 'Database not connected. Please ensure MongoDB is running.'
+    });
+  }
+  next();
 });
 
 // Routes

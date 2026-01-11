@@ -20,6 +20,11 @@ const connectRequestSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  address: {
+    type: String,
+    required: true,
+    trim: true
+  },
   images: [{
     type: String // URL or base64
   }],

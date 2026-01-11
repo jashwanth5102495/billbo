@@ -61,21 +61,22 @@ router.post('/create-owner', auth, isAdmin, async (req, res) => {
     const { username, password, name, phoneNumber, email } = req.body;
 
     // Build query conditions
-    const orConditions = [{ username }];
-    if (phoneNumber) {
-      orConditions.push({ phoneNumber });
-    }
+    const orConditions = [];
+    if (username) orConditions.push({ username });
+    if (phoneNumber) orConditions.push({ phoneNumber });
 
-    // Check if user already exists
-    let user = await User.findOne({ 
-      $or: orConditions
-    });
-
-    if (user) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'User with this username or phone number already exists' 
+    if (orConditions.length > 0) {
+      // Check if user already exists
+      let user = await User.findOne({ 
+        $or: orConditions
       });
+
+      if (user) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'User with this username or phone number already exists' 
+        });
+      }
     }
 
     const userData = {

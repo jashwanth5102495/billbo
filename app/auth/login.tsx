@@ -191,20 +191,28 @@ export default function LoginScreen() {
   };
 
   const handleContinue = async () => {
+    console.log('🔘 Button pressed:', userType);
     setIsLoading(true);
     try {
       if (userType === 'business') {
         // Business Owner Flow (Phone + OTP)
+        console.log('📱 Validating phone number:', phoneNumber);
         if (!validatePhoneNumber(phoneNumber)) {
+          console.log('❌ Invalid phone number');
           Alert.alert('Invalid Phone Number', 'Please enter a valid 10-digit mobile number');
           setIsLoading(false);
           return;
         }
 
+        console.log('📤 Sending OTP to:', `+91${phoneNumber}`);
         const success = await sendOTP(`+91${phoneNumber}`);
+        console.log('✅ Send OTP result:', success);
+        
         if (success) {
+          console.log('🚀 Navigating to verification screen');
           router.push(`/auth/otp-verification?phoneNumber=${encodeURIComponent('+91' + phoneNumber)}&userType=${userType}`);
         } else {
+          console.log('❌ Failed to send OTP');
           Alert.alert('Error', 'Failed to send OTP. Please try again.');
         }
       } else {

@@ -6,10 +6,10 @@ const { auth, isAdmin } = require('../middleware/auth');
 // Submit a new connect request
 router.post('/connect', async (req, res) => {
   try {
-    const { brand, purchaseDate, contactPerson, contactNumber, images } = req.body;
+    const { brand, purchaseDate, contactPerson, contactNumber, address, images } = req.body;
 
     // Validation
-    if (!brand || !purchaseDate || !contactPerson || !contactNumber) {
+    if (!brand || !purchaseDate || !contactPerson || !contactNumber || !address) {
       return res.status(400).json({ 
         success: false, 
         message: 'Please provide all required fields' 
@@ -21,6 +21,7 @@ router.post('/connect', async (req, res) => {
       purchaseDate,
       contactPerson,
       contactNumber,
+      address,
       images: images || []
     });
 
@@ -29,7 +30,11 @@ router.post('/connect', async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Request submitted successfully',
-      request: newRequest
+      request: {
+        _id: newRequest._id,
+        brand: newRequest.brand,
+        status: newRequest.status
+      }
     });
   } catch (error) {
     console.error('Submit connect request error:', error);
@@ -42,8 +47,10 @@ router.post('/connect', async (req, res) => {
 
 // Get all connect requests (Admin only)
 router.get('/connect', auth, isAdmin, async (req, res) => {
+  console.log('GET /requests/connect called');
   try {
     const requests = await ConnectRequest.find().sort({ createdAt: -1 });
+    console.log('Found requests:', requests.length);
     res.json({
       success: true,
       requests

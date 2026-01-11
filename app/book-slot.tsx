@@ -15,6 +15,7 @@ export default function BookSlotScreen() {
   const [loading, setLoading] = useState(true);
   const [bookedSlots, setBookedSlots] = useState<any[]>([]);
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
+  const [slotUsage, setSlotUsage] = useState<any>({});
 
   useEffect(() => {
     if (billboardId) {
@@ -34,6 +35,9 @@ export default function BookSlotScreen() {
       
       if (data.success) {
         setBookedSlots(data.bookings);
+        if (data.slotUsage) {
+            setSlotUsage(data.slotUsage);
+        }
       }
     } catch (error) {
       console.error('Error fetching availability:', error);
@@ -116,7 +120,7 @@ export default function BookSlotScreen() {
       slots.push({
         id: 'afternoon',
         name: 'Afternoon Slot',
-        time: '12:00 PM - 5:00 PM',
+        time: '12:00 PM - 6:00 PM',
         price: pricing.afternoon,
         desc: 'Midday exposure, steady audience.',
         type: 'Digital',
@@ -127,7 +131,7 @@ export default function BookSlotScreen() {
       slots.push({
         id: 'evening',
         name: 'Evening Slot',
-        time: '5:00 PM - 9:00 PM',
+        time: '6:00 PM - 12:00 AM',
         price: pricing.evening,
         desc: 'Peak evening rush, maximum engagement.',
         type: 'Digital',
@@ -138,7 +142,7 @@ export default function BookSlotScreen() {
       slots.push({
         id: 'night',
         name: 'Night Slot',
-        time: '9:00 PM - 6:00 AM',
+        time: '12:00 AM - 6:00 AM',
         price: pricing.night,
         desc: 'Night time visibility, cost effective.',
         type: 'Digital',
@@ -355,7 +359,6 @@ export default function BookSlotScreen() {
                     pkg.isBooked && styles.disabledCard
                   ]}
                   onPress={() => toggleSlot(pkg)}
-                  disabled={pkg.isBooked}
                   activeOpacity={0.7}
                 >
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>

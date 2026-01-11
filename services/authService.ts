@@ -105,6 +105,36 @@ class AuthService {
       return response;
     } catch (error) {
       console.error('Login error:', error);
+
+      // Development fallback
+      // Check for common network errors that indicate backend is down or broken
+      const isNetworkError = 
+        error.message.includes('Cannot connect to server') || 
+        error.message.includes('Network request failed') ||
+        error.message.includes('fetch') ||
+        error.message.includes('Network') ||
+        error.message.includes('500') || 
+        error.message.includes('502') || 
+        error.message.includes('503');
+
+      if (__DEV__ && isNetworkError) {
+        console.log('🔧 Development mode: Backend not running or erroring, using mock user');
+        const mockUser: User = {
+          id: `user_${Date.now()}`,
+          phoneNumber: identifier,
+          name: 'Test User',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        return {
+          success: true,
+          user: mockUser,
+          token: `mock_token_${Date.now()}`,
+          message: 'Development mode - mock login successful'
+        };
+      }
+
       return { success: false, message: error.message };
     }
   }
@@ -113,16 +143,29 @@ class AuthService {
    * Send OTP to phone number
    */
   async sendOTP(phoneNumber: string): Promise<boolean> {
-    // For now, we simulate success since we removed the OTP provider dependency in the prompt context?
-    // Or we assume the backend handles it.
-    // The prompt says "remove the mobile numer and otp flow for billbord owner...".
-    // Business owner still uses OTP.
     try {
-      // We can still hit the backend if we implemented send-otp there, but for now let's just return true
-      // or hit a mock endpoint. My backend doesn't have /send-otp.
-      return true; 
+      const response = await this.makeRequest('/auth/send-otp', {
+        method: 'POST',
+        body: JSON.stringify({ phoneNumber }),
+      });
+      
+      return response.success;
     } catch (error) {
       console.error('Send OTP error:', error);
+
+      // Development fallback
+      // Check for common network errors that indicate backend is down
+      const isNetworkError = 
+        error.message.includes('Cannot connect to server') || 
+        error.message.includes('Network request failed') ||
+        error.message.includes('fetch') ||
+        error.message.includes('Network');
+
+      if (__DEV__ && isNetworkError) {
+        console.log('🔧 Development mode: Backend not running, simulating OTP sent');
+        return true;
+      }
+
       return false;
     }
   }
@@ -149,8 +192,18 @@ class AuthService {
       console.error('Skip OTP error:', error);
       
       // Development fallback - if backend is not running, create mock user
-      if (__DEV__ && error.message.includes('Cannot connect to server')) {
-        console.log('🔧 Development mode: Backend not running, using mock user');
+      // Check for common network errors that indicate backend is down or broken
+      const isNetworkError = 
+        error.message.includes('Cannot connect to server') || 
+        error.message.includes('Network request failed') ||
+        error.message.includes('fetch') ||
+        error.message.includes('Network') ||
+        error.message.includes('500') || 
+        error.message.includes('502') || 
+        error.message.includes('503');
+
+      if (__DEV__ && isNetworkError) {
+        console.log('🔧 Development mode: Backend not running or erroring, using mock user');
         const mockUser: User = {
           id: `user_${Date.now()}`,
           phoneNumber,

@@ -17,6 +17,8 @@ export type Booking = {
   email?: string;
   slotTime?: string;
   createdAt: Date;
+  videoDuration?: number;
+  reputation?: number;
   content?: {
     type: 'image' | 'video' | 'text';
     url?: string;
@@ -93,6 +95,8 @@ export function BookingProvider({ children }: { children: ReactNode }) {
           color: getStatusColor(b.status, displayStatus),
           createdAt: new Date(b.createdAt),
           slotTime: `${b.startTime} - ${b.endTime}`,
+          videoDuration: b.videoDuration,
+          reputation: b.reputation,
           content: b.content 
         };
       });

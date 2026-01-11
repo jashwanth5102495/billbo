@@ -38,6 +38,7 @@ yarn-error.*
 # Backend files
 # backend/
 data/
+mongodb_data/
 
 *.log
 *.pid

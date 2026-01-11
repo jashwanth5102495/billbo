@@ -527,6 +527,7 @@ export default function Dashboard() {
               <th>Contact Person</th>
               <th>Phone</th>
               <th>Brand & Model</th>
+              <th>Address</th>
               <th>Purchase Date</th>
               <th>Status</th>
               <th>Actions</th>
@@ -539,6 +540,7 @@ export default function Dashboard() {
                 <td>{req.contactPerson}</td>
                 <td>{req.contactNumber}</td>
                 <td>{req.brand}</td>
+                <td>{req.address}</td>
                 <td>{req.purchaseDate}</td>
                 <td>
                   <span className={`status-badge status-${req.status.toLowerCase()}`}>
@@ -678,7 +680,8 @@ export default function Dashboard() {
                     <th>Billboard</th>
                     <th>Business Owner</th>
                     <th>Ad Content</th>
-                    <th>Duration</th>
+                    <th>Schedule</th>
+                    <th>Specs</th>
                     <th>Amount</th>
                     <th>Status</th>
                   </tr>
@@ -695,6 +698,10 @@ export default function Dashboard() {
                       <td>{renderContentCell(booking)}</td>
                       <td>
                         {new Date(booking.startDate).toLocaleDateString()} - {new Date(booking.endDate).toLocaleDateString()}
+                      </td>
+                      <td>
+                        <div style={{ fontSize: '12px' }}>Video: {booking.videoDuration || 0}s</div>
+                        <div style={{ fontSize: '12px' }}>Rep: {booking.reputation || 40}</div>
                       </td>
                       <td>₹{booking.amount || booking.price || 0}</td>
                       <td>
@@ -721,7 +728,8 @@ export default function Dashboard() {
                     <th>Billboard</th>
                     <th>Business Owner</th>
                     <th>Ad Content</th>
-                    <th>Campaign Duration</th>
+                    <th>Campaign Schedule</th>
+                    <th>Specs</th>
                     <th>Time Remaining</th>
                     <th>Status</th>
                   </tr>
@@ -743,6 +751,10 @@ export default function Dashboard() {
                         <td>{renderContentCell(booking)}</td>
                         <td>
                           {new Date(booking.startDate).toLocaleDateString()} - {new Date(booking.endDate).toLocaleDateString()}
+                        </td>
+                        <td>
+                          <div style={{ fontSize: '12px' }}>Video: {booking.videoDuration || 0}s</div>
+                          <div style={{ fontSize: '12px' }}>Rep: {booking.reputation || 40}</div>
                         </td>
                         <td>
                           {end > now ? `${diffDays} days left` : 'Ended'}
