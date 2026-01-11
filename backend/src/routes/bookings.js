@@ -5,6 +5,52 @@ const Booking = require('../models/Booking');
 const Billboard = require('../models/Billboard');
 const User = require('../models/User');
 
+const SLOT_DURATION_SECONDS = 21600; // 6 hours
+
+// Helper to sanitize booking price if corrupted
+async function sanitizeBooking(booking) {
+  try {
+    // If price is unreasonably high (e.g. > 100,000), try to recalculate
+    if (booking.price > 100000) {
+      const billboard = await Billboard.findById(booking.billboardId);
+      if (billboard) {
+        let slotPrice = 0;
+        const hour = parseInt(booking.startTime.split(':')[0]);
+        
+        if (hour >= 6 && hour < 12) slotPrice = billboard.slotPricing?.morning;
+        else if (hour >= 12 && hour < 18) slotPrice = billboard.slotPricing?.afternoon;
+        else if (hour >= 18) slotPrice = billboard.slotPricing?.evening;
+        else slotPrice = billboard.slotPricing?.night;
+
+        if (!slotPrice) slotPrice = billboard.price || 12000;
+
+        const start = new Date(booking.startDate);
+        const end = new Date(booking.endDate);
+        start.setHours(0,0,0,0);
+        end.setHours(0,0,0,0);
+        const oneDay = 24 * 60 * 60 * 1000;
+        const diffDays = Math.round(Math.abs((end - start) / oneDay)) + 1;
+        
+        const videoDuration = booking.videoDuration || 15;
+        const reputation = booking.reputation || 40;
+        
+        const costPerSecond = slotPrice / SLOT_DURATION_SECONDS;
+        const dailyConsumedSeconds = videoDuration * reputation;
+        const correctPrice = Math.round(costPerSecond * dailyConsumedSeconds * diffDays);
+
+        if (correctPrice < booking.price) {
+            console.log(`Sanitizing booking ${booking._id}: ${booking.price} -> ${correctPrice}`);
+            booking.price = correctPrice;
+            await booking.save();
+        }
+      }
+    }
+  } catch (err) {
+    console.error(`Error sanitizing booking ${booking._id}:`, err);
+  }
+  return booking;
+}
+
 const router = express.Router();
 
 // Get bookings for Billboard Owner
@@ -38,6 +84,9 @@ router.get('/owner', auth, async (req, res) => {
     })
     .populate('userId', 'name email phoneNumber') // Get Business Owner details
     .sort({ createdAt: -1 });
+
+    // Sanitize prices
+    await Promise.all(bookings.map(sanitizeBooking));
 
     res.json({
       success: true,
@@ -87,11 +136,39 @@ router.get('/check-availability', async (req, res) => {
           endDate: { $gt: endOfDay }
         }
       ]
-    }).select('startDate endDate startTime endTime status');
+    }).select('startDate endDate startTime endTime status videoDuration reputation');
+
+    // Calculate slot usage
+    const slotUsage = {
+      morning: 0,
+      afternoon: 0,
+      evening: 0,
+      night: 0
+    };
+
+    bookings.forEach(booking => {
+      // Determine slot based on start time
+      const hour = parseInt(booking.startTime.split(':')[0]);
+      let slot = '';
+      
+      // Standard 6-hour slots
+      if (hour >= 6 && hour < 12) slot = 'morning';
+      else if (hour >= 12 && hour < 18) slot = 'afternoon';
+      else if (hour >= 18) slot = 'evening';
+      else slot = 'night'; // 0-6
+
+      if (slot) {
+        const duration = booking.videoDuration || 15;
+        const reputation = booking.reputation || 40;
+        const consumed = duration * reputation;
+        slotUsage[slot] += consumed;
+      }
+    });
 
     res.json({
       success: true,
-      bookings
+      bookings,
+      slotUsage
     });
 
   } catch (error) {
@@ -245,6 +322,8 @@ router.get('/:bookingId', auth, async (req, res) => {
         message: 'Access denied'
       });
     }
+
+    await sanitizeBooking(booking);
 
     res.json({
       success: true,
@@ -433,6 +512,9 @@ router.get('/user/:userId/history', auth, async (req, res) => {
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort({ createdAt: -1 });
+
+    // Sanitize prices
+    await Promise.all(bookings.map(sanitizeBooking));
 
     const total = await Booking.countDocuments(filter);
 

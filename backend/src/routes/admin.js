@@ -6,6 +6,55 @@ const Booking = require('../models/Booking');
 const { auth, isAdmin } = require('../middleware/auth');
 const bcrypt = require('bcryptjs');
 
+const SLOT_DURATION_SECONDS = 21600; // 6 hours
+
+// Helper to sanitize booking price if corrupted
+async function sanitizeBooking(booking) {
+  try {
+    // If price is unreasonably high (e.g. > 100,000), try to recalculate
+    if (booking.price > 100000) {
+      // Handle populated billboardId
+      const billboardId = booking.billboardId._id || booking.billboardId;
+      const billboard = await Billboard.findById(billboardId);
+      
+      if (billboard) {
+        let slotPrice = 0;
+        const hour = parseInt(booking.startTime.split(':')[0]);
+        
+        if (hour >= 6 && hour < 12) slotPrice = billboard.slotPricing?.morning;
+        else if (hour >= 12 && hour < 18) slotPrice = billboard.slotPricing?.afternoon;
+        else if (hour >= 18) slotPrice = billboard.slotPricing?.evening;
+        else slotPrice = billboard.slotPricing?.night;
+
+        if (!slotPrice) slotPrice = billboard.price || 12000;
+
+        const start = new Date(booking.startDate);
+        const end = new Date(booking.endDate);
+        start.setHours(0,0,0,0);
+        end.setHours(0,0,0,0);
+        const oneDay = 24 * 60 * 60 * 1000;
+        const diffDays = Math.round(Math.abs((end - start) / oneDay)) + 1;
+        
+        const videoDuration = booking.videoDuration || 15;
+        const reputation = booking.reputation || 40;
+        
+        const costPerSecond = slotPrice / SLOT_DURATION_SECONDS;
+        const dailyConsumedSeconds = videoDuration * reputation;
+        const correctPrice = Math.round(costPerSecond * dailyConsumedSeconds * diffDays);
+
+        if (correctPrice < booking.price) {
+            console.log(`Sanitizing booking ${booking._id}: ${booking.price} -> ${correctPrice}`);
+            booking.price = correctPrice;
+            await booking.save();
+        }
+      }
+    }
+  } catch (err) {
+    console.error(`Error sanitizing booking ${booking._id}:`, err);
+  }
+  return booking;
+}
+
 // Create Billboard Owner
 router.post('/create-owner', auth, isAdmin, async (req, res) => {
   try {
