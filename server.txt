@@ -24,7 +24,7 @@ How to Run:
 3. Start the server:
    npm run dev
 
-   (Runs on http://localhost:5000 by default)
+   (Runs on http://localhost:3000 by default)
 
 --------------------------------------------------------------------------------
 
