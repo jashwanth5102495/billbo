@@ -94,7 +94,9 @@ export default function CalculatePriceScreen() {
         selectedPackages: JSON.stringify(selectedPackages),
         billboardId: params.billboardId,
         billboardName: billboardName,
-        date: params.date
+        date: params.date,
+        mediaUri: params.mediaUri,
+        isPersonalWish: params.isPersonalWish
       }
     });
   };

@@ -8,7 +8,7 @@ import { CartContext } from './(tabs)/cart-context';
 export default function BookSlotScreen() {
   const { isDarkMode } = useTheme();
   const params = useLocalSearchParams();
-  const { billboardId, date } = params;
+  const { billboardId, date, mediaUri, isPersonalWish } = params;
   const { addToCart, cart } = React.useContext(CartContext);
 
   const [billboard, setBillboard] = useState<any>(null);
@@ -183,7 +183,9 @@ export default function BookSlotScreen() {
         billboardName: billboard?.name || 'Billboard',
         selectedPackages: JSON.stringify(selectedPackages),
         billboardId: billboardId,
-        date: date
+        date: date,
+        mediaUri: mediaUri,
+        isPersonalWish: isPersonalWish
       }
     });
   };
@@ -319,7 +321,13 @@ export default function BookSlotScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
           <TouchableOpacity 
             style={{ marginRight: 16, padding: 4 }}
-            onPress={() => router.push('/(tabs)')}
+            onPress={() => {
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.push('/(tabs)');
+              }
+            }}
           >
              <ArrowLeft size={24} color={isDarkMode ? '#fff' : '#222'} />
           </TouchableOpacity>

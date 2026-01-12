@@ -96,7 +96,7 @@ export default function PersonalWishesBookingScreen() {
       marginLeft: 12,
     },
     locationCard: {
-      backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
+      backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF',
       borderRadius: 16,
       marginBottom: 16,
       shadowColor: '#000',
@@ -120,7 +120,7 @@ export default function PersonalWishesBookingScreen() {
     locationName: {
       fontSize: 16,
       fontWeight: 'bold',
-      color: isDark ? '#FFFFFF' : '#111827',
+      color: isDarkMode ? '#FFFFFF' : '#111827',
       marginBottom: 4,
     },
     locationDetails: {
@@ -130,7 +130,7 @@ export default function PersonalWishesBookingScreen() {
     },
     locationText: {
       fontSize: 14,
-      color: isDark ? '#9CA3AF' : '#6B7280',
+      color: isDarkMode ? '#9CA3AF' : '#6B7280',
       marginLeft: 4,
     },
     ratingRow: {
@@ -141,12 +141,12 @@ export default function PersonalWishesBookingScreen() {
     rating: {
       fontSize: 14,
       fontWeight: '600',
-      color: isDark ? '#FFFFFF' : '#111827',
+      color: isDarkMode ? '#FFFFFF' : '#111827',
       marginLeft: 4,
     },
     reviews: {
       fontSize: 14,
-      color: isDark ? '#9CA3AF' : '#6B7280',
+      color: isDarkMode ? '#9CA3AF' : '#6B7280',
       marginLeft: 4,
     },
     priceText: {
@@ -173,7 +173,7 @@ export default function PersonalWishesBookingScreen() {
       padding: 20,
     },
     modalContent: {
-      backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
+      backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF',
       borderRadius: 20,
       padding: 24,
       width: '100%',
@@ -188,13 +188,13 @@ export default function PersonalWishesBookingScreen() {
     modalTitle: {
       fontSize: 20,
       fontWeight: 'bold',
-      color: isDark ? '#FFFFFF' : '#111827',
+      color: isDarkMode ? '#FFFFFF' : '#111827',
     },
     closeButton: {
       width: 32,
       height: 32,
       borderRadius: 16,
-      backgroundColor: isDark ? '#374151' : '#E5E7EB',
+      backgroundColor: isDarkMode ? '#374151' : '#E5E7EB',
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -209,17 +209,17 @@ export default function PersonalWishesBookingScreen() {
     },
     infoText: {
       fontSize: 16,
-      color: isDark ? '#FFFFFF' : '#111827',
+      color: isDarkMode ? '#FFFFFF' : '#111827',
       flex: 1,
     },
     infoLabel: {
       fontSize: 14,
       fontWeight: '600',
-      color: isDark ? '#9CA3AF' : '#6B7280',
+      color: isDarkMode ? '#9CA3AF' : '#6B7280',
       marginBottom: 4,
     },
     packageCard: {
-      backgroundColor: isDark ? '#374151' : '#F3F4F6',
+      backgroundColor: isDarkMode ? '#374151' : '#F3F4F6',
       borderRadius: 12,
       padding: 16,
       marginBottom: 12,
@@ -228,7 +228,7 @@ export default function PersonalWishesBookingScreen() {
     },
     selectedPackage: {
       borderColor: '#FF6B6B',
-      backgroundColor: isDark ? '#7F1D1D' : '#FEE2E2',
+      backgroundColor: isDarkMode ? '#7F1D1D' : '#FEE2E2',
     },
     packageHeader: {
       flexDirection: 'row',
@@ -239,7 +239,7 @@ export default function PersonalWishesBookingScreen() {
     packageName: {
       fontSize: 16,
       fontWeight: 'bold',
-      color: isDark ? '#FFFFFF' : '#111827',
+      color: isDarkMode ? '#FFFFFF' : '#111827',
     },
     packageType: {
       paddingHorizontal: 8,
@@ -264,17 +264,17 @@ export default function PersonalWishesBookingScreen() {
     packageTime: {
       fontSize: 14,
       fontWeight: '600',
-      color: isDark ? '#FFFFFF' : '#111827',
+      color: isDarkMode ? '#FFFFFF' : '#111827',
       marginBottom: 4,
     },
     packageDuration: {
       fontSize: 14,
-      color: isDark ? '#9CA3AF' : '#6B7280',
+      color: isDarkMode ? '#9CA3AF' : '#6B7280',
       marginBottom: 4,
     },
     packageDescription: {
       fontSize: 13,
-      color: isDark ? '#9CA3AF' : '#6B7280',
+      color: isDarkMode ? '#9CA3AF' : '#6B7280',
       marginBottom: 8,
     },
     packagePrice: {
@@ -304,7 +304,7 @@ export default function PersonalWishesBookingScreen() {
     },
     loadingText: {
       fontSize: 16,
-      color: isDark ? '#9CA3AF' : '#6B7280',
+      color: isDarkMode ? '#9CA3AF' : '#6B7280',
       marginTop: 12,
     },
     emptyContainer: {
@@ -315,15 +315,22 @@ export default function PersonalWishesBookingScreen() {
     },
     emptyText: {
       fontSize: 16,
-      color: isDark ? '#9CA3AF' : '#6B7280',
+      color: isDarkMode ? '#9CA3AF' : '#6B7280',
       textAlign: 'center',
     },
   });
 
   const handleLocationSelect = (location) => {
-    setSelectedLocation(location);
-    setSelectedPackage(null);
-    setShowPackageModal(true);
+    // Navigate to Book Slot Screen directly, bypassing packages
+    router.push({
+      pathname: '/book-slot',
+      params: {
+        billboardId: location.id,
+        date: params.date,
+        mediaUri: params.mediaUri,
+        isPersonalWish: 'true',
+      }
+    });
   };
 
   const handlePackageSelect = (pkg) => {
@@ -356,7 +363,7 @@ export default function PersonalWishesBookingScreen() {
           onPress={() => router.back()}
           activeOpacity={0.7}
         >
-          <ArrowLeft size={20} color={isDark ? '#FFFFFF' : '#111827'} />
+          <ArrowLeft size={20} color={isDarkMode ? '#FFFFFF' : '#111827'} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Select Location</Text>
       </View>
@@ -402,7 +409,7 @@ export default function PersonalWishesBookingScreen() {
             <View style={styles.locationInfo}>
               <Text style={styles.locationName}>{location.name}</Text>
               <View style={styles.locationDetails}>
-                <MapPin size={14} color={isDark ? '#9CA3AF' : '#6B7280'} />
+                <MapPin size={14} color={isDarkMode ? '#9CA3AF' : '#6B7280'} />
                 <Text style={styles.locationText}>{location.location}</Text>
               </View>
               <View style={styles.ratingRow}>
@@ -431,7 +438,7 @@ export default function PersonalWishesBookingScreen() {
                   style={styles.closeButton}
                   onPress={() => setShowInfoModal(false)}
                 >
-                  <X size={16} color={isDark ? '#FFFFFF' : '#111827'} />
+                  <X size={16} color={isDarkMode ? '#FFFFFF' : '#111827'} />
                 </TouchableOpacity>
               </View>
 
@@ -489,7 +496,7 @@ export default function PersonalWishesBookingScreen() {
                   style={styles.closeButton}
                   onPress={() => setShowPackageModal(false)}
                 >
-                  <X size={16} color={isDark ? '#FFFFFF' : '#111827'} />
+                  <X size={16} color={isDarkMode ? '#FFFFFF' : '#111827'} />
                 </TouchableOpacity>
               </View>
 

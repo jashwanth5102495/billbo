@@ -7,11 +7,13 @@ import {
   useColorScheme,
   ScrollView,
   Alert,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { ArrowLeft, Upload, Plus, Heart, Gift, Calendar, Users } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTheme } from '../(tabs)/ThemeContext';
 
 const wishCategories = [
@@ -52,6 +54,8 @@ const wishCategories = [
 export default function PersonalWishesScreen() {
   const { isDarkMode } = useTheme();
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
+  const [date, setDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const styles = StyleSheet.create({
     container: {
@@ -143,6 +147,31 @@ export default function PersonalWishesScreen() {
       fontWeight: '600',
       marginLeft: 8,
     },
+    dateSection: {
+      backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF',
+      borderRadius: 16,
+      padding: 24,
+      marginBottom: 24,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    dateButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: isDarkMode ? '#374151' : '#F3F4F6',
+      padding: 16,
+      borderRadius: 12,
+      marginTop: 12,
+    },
+    dateText: {
+      marginLeft: 12,
+      fontSize: 16,
+      color: isDarkMode ? '#FFFFFF' : '#111827',
+      fontWeight: '600',
+    },
     sectionTitle: {
       fontSize: 18,
       fontWeight: 'bold',
@@ -218,6 +247,13 @@ export default function PersonalWishesScreen() {
     }
   };
 
+  const onDateChange = (event, selectedDate) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setDate(selectedDate);
+    }
+  };
+
   const handleCategorySelect = (category) => {
     if (selectedMedia) {
       router.push({
@@ -225,6 +261,7 @@ export default function PersonalWishesScreen() {
         params: {
           category: category.title,
           mediaUri: selectedMedia,
+          date: date.toISOString(),
         }
       });
     } else {
@@ -238,6 +275,7 @@ export default function PersonalWishesScreen() {
         pathname: '/personal-wishes/booking',
         params: {
           mediaUri: selectedMedia,
+          date: date.toISOString(),
         }
       });
     }
@@ -278,6 +316,95 @@ export default function PersonalWishesScreen() {
             <Text style={styles.uploadButtonText}>Browse Files</Text>
           </TouchableOpacity>
         </View>
+
+        {selectedMedia && (
+        <View style={styles.dateSection}>
+          <Text style={styles.heroTitle}>Select Date</Text>
+          <Text style={styles.heroSubtitle}>
+            Choose when you want your wish to be displayed.
+          </Text>
+          <TouchableOpacity 
+            style={styles.dateButton}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Calendar size={24} color={isDarkMode ? '#FFFFFF' : '#111827'} />
+            <Text style={styles.dateText}>
+              {date.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </Text>
+          </TouchableOpacity>
+          {showDatePicker && (
+            <View>
+              {Platform.OS === 'web' ? (
+                 <View style={{
+                   padding: 10,
+                   backgroundColor: isDarkMode ? '#374151' : '#E5E7EB',
+                   borderRadius: 8,
+                   marginTop: 8
+                 }}>
+                   <Text style={{
+                     color: isDarkMode ? '#FFFFFF' : '#111827',
+                     marginBottom: 8
+                   }}>Select Date:</Text>
+                   <input
+                     type="date"
+                     value={date.toISOString().split('T')[0]}
+                     onChange={(e) => {
+                       const newDate = new Date(e.target.value);
+                       if (!isNaN(newDate.getTime())) {
+                         onDateChange(null, newDate);
+                       }
+                     }}
+                     style={{
+                       padding: '8px',
+                       borderRadius: '4px',
+                       border: '1px solid #ccc',
+                       width: '100%'
+                     }}
+                     min={new Date().toISOString().split('T')[0]}
+                   />
+                   <TouchableOpacity 
+                    onPress={() => setShowDatePicker(false)}
+                    style={{ 
+                      alignItems: 'center', 
+                      padding: 10, 
+                      backgroundColor: '#FF6B6B', 
+                      borderRadius: 8, 
+                      marginTop: 12 
+                    }}
+                  >
+                    <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>Confirm Date</Text>
+                  </TouchableOpacity>
+                 </View>
+              ) : (
+                <View>
+                  <DateTimePicker
+                    value={date}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={onDateChange}
+                    minimumDate={new Date()}
+                    textColor={isDarkMode ? '#FFFFFF' : '#111827'}
+                  />
+                  {Platform.OS === 'ios' && (
+                    <TouchableOpacity 
+                      onPress={() => setShowDatePicker(false)}
+                      style={{ 
+                        alignItems: 'center', 
+                        padding: 10, 
+                        backgroundColor: isDarkMode ? '#374151' : '#E5E7EB', 
+                        borderRadius: 8, 
+                        marginTop: 8 
+                      }}
+                    >
+                      <Text style={{ color: isDarkMode ? '#FFFFFF' : '#111827', fontWeight: '600' }}>Done</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
+            </View>
+          )}
+        </View>
+        )}
 
         <Text style={styles.sectionTitle}>Choose Your Occasion</Text>
         <View style={styles.categoryGrid}>

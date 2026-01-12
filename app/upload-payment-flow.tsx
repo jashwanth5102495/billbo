@@ -15,8 +15,9 @@ export default function UploadPaymentFlowScreen() {
   const duration = parseInt(params.duration as string) || 5;
   const selectedPackages = params.selectedPackages ? JSON.parse(params.selectedPackages as string) : [];
   const billboardName = params.billboardName as string || 'Billboard';
+  const isPersonalWish = params.isPersonalWish === 'true'; // Parse boolean param
   
-  const [videoUri, setVideoUri] = useState<string | null>(null);
+  const [videoUri, setVideoUri] = useState<string | null>(params.mediaUri as string || null);
   const [loading, setLoading] = useState(false);
 
   const pickVideo = async () => {

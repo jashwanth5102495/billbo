@@ -222,13 +222,19 @@ export default function RazorpayCheckoutScreen() {
                }
              }
 
+             // Calculate End Date
+             const days = parseInt(item.days as string) || 1;
+             const endDate = new Date(startDate);
+             endDate.setDate(startDate.getDate() + (days - 1));
+             endDate.setHours(23, 59, 59, 999);
+
              const payload = {
-               bookingType: 'play-ad',
+               bookingType: item.bookingType || 'play-ad',
                billboardId: item.billboardId,
                billboardName: item.billboardName || item.name || 'Billboard',
                location: item.location || 'Unknown Location',
                startDate: startDate.toISOString(),
-               endDate: startDate.toISOString(),
+               endDate: endDate.toISOString(),
                startTime: timeData.start,
                endTime: timeData.end,
                duration: 1, 
