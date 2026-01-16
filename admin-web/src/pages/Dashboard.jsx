@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Users, 
@@ -23,6 +23,7 @@ import './Dashboard.css';
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('billboard-owners');
   const [owners, setOwners] = useState([]);
+  const [businessOwners, setBusinessOwners] = useState([]);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     username: '',
@@ -77,19 +78,27 @@ export default function Dashboard() {
 
   const navigate = useNavigate();
 
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminUser');
+    navigate('/login');
+  }, [navigate]);
 
-
-  useEffect(() => {
-    if (activeTab === 'billboard-owners') {
-      fetchOwners();
-    } else if (activeTab === 'new-requests') {
-      fetchRequests();
-    } else if (activeTab === 'running-ads') {
-      fetchRunningAdsData();
+  const fetchBusinessOwners = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/admin/business-owners');
+      if (response.data.success) {
+        setBusinessOwners(response.data.owners);
+      }
+    } catch (error) {
+      console.error('Error fetching business owners:', error);
+    } finally {
+      setLoading(false);
     }
-  }, [activeTab]);
+  }, []);
 
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     setRequestsLoading(true);
     try {
       const response = await api.get('/requests/connect');
@@ -101,7 +110,7 @@ export default function Dashboard() {
     } finally {
       setRequestsLoading(false);
     }
-  };
+  }, []);
 
   const updateRequestStatus = async (id, status) => {
     try {
@@ -112,11 +121,12 @@ export default function Dashboard() {
         ));
       }
     } catch (error) {
+      console.error('Error updating request status:', error);
       alert('Failed to update status');
     }
   };
 
-  const fetchOwners = async () => {
+  const fetchOwners = useCallback(async () => {
     try {
       const response = await api.get('/admin/owners');
       if (response.data.success) {
@@ -130,9 +140,9 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [handleLogout]);
 
-  const fetchRunningAdsData = async () => {
+  const fetchRunningAdsData = useCallback(async () => {
     setRunningAdsLoading(true);
     try {
       const [bookingsRes, runningRes, availRes] = await Promise.all([
@@ -149,13 +159,19 @@ export default function Dashboard() {
     } finally {
       setRunningAdsLoading(false);
     }
-  };
+  }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminUser');
-    navigate('/login');
-  };
+  useEffect(() => {
+    if (activeTab === 'billboard-owners') {
+      fetchOwners();
+    } else if (activeTab === 'new-requests') {
+      fetchRequests();
+    } else if (activeTab === 'running-ads') {
+      fetchRunningAdsData();
+    } else if (activeTab === 'business-owners') {
+      fetchBusinessOwners();
+    }
+  }, [activeTab, fetchOwners, fetchRequests, fetchRunningAdsData, fetchBusinessOwners]);
 
   const handleCreateOwner = async (e) => {
     e.preventDefault();
@@ -821,6 +837,52 @@ export default function Dashboard() {
     </div>
   );
 
+  const renderBusinessOwnersContent = () => (
+    <div className="list-container">
+      <div className="list-header">
+        Business Owners ({businessOwners.length})
+      </div>
+
+      {loading ? (
+        <div className="empty-state">Loading...</div>
+      ) : businessOwners.length > 0 ? (
+        <table className="owner-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Username</th>
+              <th>Phone</th>
+              <th>Email</th>
+              <th>Status</th>
+              <th>Joined Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {businessOwners.map((owner) => (
+              <tr key={owner._id}>
+                <td>{owner.name || 'N/A'}</td>
+                <td>{owner.username || 'N/A'}</td>
+                <td>{owner.phoneNumber || 'N/A'}</td>
+                <td>{owner.email || 'N/A'}</td>
+                <td>
+                  <span className={`status-badge ${owner.isActive ? 'status-active' : 'status-inactive'}`}>
+                    {owner.isActive ? 'Active' : 'Inactive'}
+                  </span>
+                </td>
+                <td>{new Date(owner.createdAt).toLocaleDateString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <div className="empty-state">
+          <Store className="empty-icon" />
+          <p>No business owners found</p>
+        </div>
+      )}
+    </div>
+  );
+
   const renderSidebar = () => (
     <aside className="sidebar">
       <div className="sidebar-header">
@@ -1156,13 +1218,7 @@ export default function Dashboard() {
         
         {activeTab === 'new-requests' && renderNewRequestsContent()}
 
-        {activeTab === 'business-owners' && (
-          <div className="empty-state">
-            <Store className="empty-icon" />
-            <h3>Business Owners Management</h3>
-            <p>Coming soon...</p>
-          </div>
-        )}
+        {activeTab === 'business-owners' && renderBusinessOwnersContent()}
 
         {activeTab === 'running-ads' && renderRunningAdsContent()}
       </main>
