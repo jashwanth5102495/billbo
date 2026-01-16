@@ -130,6 +130,25 @@ router.get('/owners', auth, isAdmin, async (req, res) => {
   }
 });
 
+// List Business Owners
+router.get('/business-owners', auth, isAdmin, async (req, res) => {
+  try {
+    const owners = await User.find({ role: 'business' })
+      .select('-password')
+      .sort({ createdAt: -1 });
+      
+    res.json({
+      success: true,
+      owners
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error while fetching business owners' 
+    });
+  }
+});
+
 // Update Billboard Owner
 router.put('/owners/:id', auth, isAdmin, async (req, res) => {
   try {

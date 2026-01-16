@@ -57,6 +57,15 @@ export function HeroScrollDemo() {
             Watch your Ad being played
           </span>
         </div>
+
+        <a
+          href="https://expo.dev/artifacts/eas/23uQwHvyAgj1WE5mSPALd6.apk"
+          download="BillBo-App.apk"
+          className="mt-6 flex items-center gap-2 rounded-full bg-emerald-500 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-emerald-600 hover:shadow-lg active:scale-95"
+        >
+          <Download className="h-4 w-4" />
+          Download Mobile App
+        </a>
       </div>
     </div>
   );

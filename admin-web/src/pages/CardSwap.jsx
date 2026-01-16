@@ -76,7 +76,7 @@ const CardSwap = ({
 
   const refs = useMemo(
     () => childArr.map(() => createRef()),
-    [childArr.length]
+    [childArr]
   );
 
   const order = useRef(Array.from({ length: childArr.length }, (_, i) => i));
@@ -216,8 +216,14 @@ const CardSwap = ({
     skewAmount,
     easing,
     refs,
-    childArr.length,
-    onActiveChange
+    childArr,
+    onActiveChange,
+    config.durDrop,
+    config.durMove,
+    config.durReturn,
+    config.ease,
+    config.promoteOverlap,
+    config.returnDelay
   ]);
 
   const rendered = childArr.map((child, i) =>
