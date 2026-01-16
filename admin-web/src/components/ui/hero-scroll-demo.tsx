@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Download } from "lucide-react";
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 
 export function HeroScrollDemo() {
@@ -27,7 +28,7 @@ export function HeroScrollDemo() {
         />
       </ContainerScroll>
 
-      <div className="mt-3 flex flex-col items-center justify-center px-4">
+      <div className="mt-1 flex flex-col items-center justify-center px-4">
         <p className="mb-6 max-w-3xl text-center text-xs sm:text-sm md:text-base text-neutral-300">
           BillBo provides a smooth and seamless platform to book and play advertisements across both
           digital and traditional static billboards. Powered by an AI-integrated mobile application,
