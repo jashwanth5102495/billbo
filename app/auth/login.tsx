@@ -9,6 +9,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Image,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -22,9 +24,12 @@ export default function LoginScreen() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [ownerStep, setOwnerStep] = useState<'username' | 'password'>('username');
   const [userType, setUserType] = useState<'business' | 'billboard'>('business');
   const [isLoading, setIsLoading] = useState(false);
   const [inputFocused, setInputFocused] = useState<string | null>(null);
+  const { width: screenWidth } = useWindowDimensions();
+  const logoSize = Math.min(screenWidth * 0.9, 360);
 
   const styles = StyleSheet.create({
     container: {
@@ -34,12 +39,26 @@ export default function LoginScreen() {
     content: {
       flex: 1,
       paddingHorizontal: 24,
-      justifyContent: 'center',
+      justifyContent: 'flex-end',
+      paddingBottom: 16,
     },
     header: {
       alignItems: 'center',
       marginBottom: 32,
+      marginTop: -64,
       position: 'relative',
+    },
+    logoContainer: {
+      width: logoSize,
+      height: logoSize,
+      borderRadius: logoSize / 4,
+      overflow: 'hidden',
+      marginBottom: 8,
+    },
+    logoImage: {
+      width: '100%',
+      height: '100%',
+      resizeMode: 'contain',
     },
     themeToggle: {
       position: 'absolute',
@@ -52,20 +71,6 @@ export default function LoginScreen() {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    logo: {
-      width: 80,
-      height: 80,
-      backgroundColor: '#9333EA',
-      borderRadius: 20,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: 24,
-    },
-    logoText: {
-      fontSize: 32,
-      fontWeight: 'bold',
-      color: '#FFFFFF',
-    },
     title: {
       fontSize: 28,
       fontWeight: 'bold',
@@ -74,32 +79,40 @@ export default function LoginScreen() {
       marginBottom: 8,
     },
     subtitle: {
-      fontSize: 16,
+      fontSize: 15,
       color: isDarkMode ? '#9CA3AF' : '#6B7280',
       textAlign: 'center',
-      lineHeight: 24,
+      lineHeight: 22,
+      marginBottom: 10,
     },
     userTypeContainer: {
       flexDirection: 'row',
-      backgroundColor: isDarkMode ? '#1F2937' : '#F3F4F6',
-      borderRadius: 12,
+      backgroundColor: isDarkMode ? 'rgba(15, 23, 42, 0.85)' : 'rgba(243, 244, 246, 0.9)',
+      borderRadius: 16,
       padding: 4,
-      marginBottom: 24,
+      marginBottom: 20,
+      borderWidth: 1,
+      borderColor: isDarkMode ? 'rgba(148, 163, 184, 0.35)' : 'rgba(148, 163, 184, 0.25)',
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.35,
+      shadowRadius: 24,
+      elevation: 10,
     },
     userTypeButton: {
       flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: 12,
+      paddingVertical: 10,
       borderRadius: 8,
       gap: 8,
     },
     userTypeButtonActive: {
-      backgroundColor: '#9333EA',
+      backgroundColor: 'rgba(168, 85, 247, 0.9)',
     },
     userTypeButtonText: {
-      fontSize: 14,
+      fontSize: 13,
       fontWeight: '600',
       color: isDarkMode ? '#9CA3AF' : '#6B7280',
     },
@@ -107,13 +120,13 @@ export default function LoginScreen() {
       color: '#FFFFFF',
     },
     form: {
-      marginBottom: 32,
-    },
-    inputContainer: {
       marginBottom: 24,
     },
+    inputContainer: {
+      marginBottom: 16,
+    },
     label: {
-      fontSize: 16,
+      fontSize: 15,
       fontWeight: '600',
       color: isDarkMode ? '#FFFFFF' : '#111827',
       marginBottom: 8,
@@ -125,46 +138,46 @@ export default function LoginScreen() {
       borderRadius: 12,
       borderWidth: 1,
       borderColor: isDarkMode ? '#374151' : '#E5E7EB',
-      paddingHorizontal: 16,
-      height: 56,
-      marginBottom: 16,
+      paddingHorizontal: 14,
+      height: 50,
+      marginBottom: 10,
     },
     inputWrapperFocused: {
       borderColor: '#9333EA',
       backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF',
     },
     countryCode: {
-      fontSize: 16,
+      fontSize: 15,
       fontWeight: '600',
       color: isDarkMode ? '#FFFFFF' : '#111827',
       marginRight: 8,
     },
     input: {
       flex: 1,
-      fontSize: 16,
+      fontSize: 15,
       color: isDarkMode ? '#FFFFFF' : '#111827',
       paddingVertical: 0,
     },
     continueButton: {
-      backgroundColor: '#9333EA',
-      borderRadius: 12,
-      height: 56,
+      backgroundColor: 'rgba(168, 85, 247, 0.95)',
+      borderRadius: 10,
+      height: 52,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      shadowColor: '#9333EA',
+      shadowColor: '#A855F7',
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.3,
       shadowRadius: 8,
       elevation: 8,
     },
     continueButtonDisabled: {
-      backgroundColor: isDarkMode ? '#374151' : '#D1D5DB',
+      backgroundColor: isDarkMode ? 'rgba(17, 24, 39, 0.9)' : 'rgba(209, 213, 219, 0.95)',
       shadowOpacity: 0,
       elevation: 0,
     },
     continueButtonText: {
-      fontSize: 16,
+      fontSize: 15,
       fontWeight: '600',
       color: '#FFFFFF',
       marginRight: 8,
@@ -180,7 +193,7 @@ export default function LoginScreen() {
       lineHeight: 20,
     },
     termsText: {
-      color: '#9333EA',
+      color: '#A855F7',
       fontWeight: '600',
     },
   });
@@ -195,7 +208,6 @@ export default function LoginScreen() {
     setIsLoading(true);
     try {
       if (userType === 'business') {
-        // Business Owner Flow (Phone + OTP)
         console.log('📱 Validating phone number:', phoneNumber);
         if (!validatePhoneNumber(phoneNumber)) {
           console.log('❌ Invalid phone number');
@@ -216,9 +228,19 @@ export default function LoginScreen() {
           Alert.alert('Error', 'Failed to send OTP. Please try again.');
         }
       } else {
-        // Billboard Owner Flow (Username + Password)
-        if (!username || !password) {
-          Alert.alert('Missing Fields', 'Please enter both username and password');
+        if (ownerStep === 'username') {
+          if (!username.trim()) {
+            Alert.alert('Missing Username', 'Please enter your username to continue');
+            setIsLoading(false);
+            return;
+          }
+          setOwnerStep('password');
+          setIsLoading(false);
+          return;
+        }
+
+        if (!password) {
+          Alert.alert('Missing Password', 'Please enter your password to login');
           setIsLoading(false);
           return;
         }
@@ -248,11 +270,10 @@ export default function LoginScreen() {
             <TouchableOpacity style={styles.themeToggle} onPress={toggleTheme}>
               {isDarkMode ? <Sun size={24} color="#FDB813" /> : <Moon size={24} color="#1F2937" />}
             </TouchableOpacity>
-            
-            <View style={styles.logo}>
-              <Text style={styles.logoText}>BB</Text>
+            <View style={styles.logoContainer}>
+              <Image source={require('../../public/logo.png')} style={styles.logoImage} />
             </View>
-            <Text style={styles.title}>Welcome Back</Text>
+
             <Text style={styles.subtitle}>
               {userType === 'business' 
                 ? 'Enter your mobile number to continue'
@@ -260,14 +281,17 @@ export default function LoginScreen() {
             </Text>
           </View>
 
-          <View style={styles.userTypeContainer}>
-            <TouchableOpacity
-              style={[
-                styles.userTypeButton,
-                userType === 'business' && styles.userTypeButtonActive
-              ]}
-              onPress={() => setUserType('business')}
-            >
+            <View style={styles.userTypeContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.userTypeButton,
+                  userType === 'business' && styles.userTypeButtonActive
+                ]}
+              onPress={() => {
+                setUserType('business');
+                setOwnerStep('username');
+              }}
+              >
               <Briefcase 
                 size={20} 
                 color={userType === 'business' ? '#FFFFFF' : (isDarkMode ? '#9CA3AF' : '#6B7280')} 
@@ -278,13 +302,16 @@ export default function LoginScreen() {
               ]}>Business</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity
-              style={[
-                styles.userTypeButton,
-                userType === 'billboard' && styles.userTypeButtonActive
-              ]}
-              onPress={() => setUserType('billboard')}
-            >
+              <TouchableOpacity
+                style={[
+                  styles.userTypeButton,
+                  userType === 'billboard' && styles.userTypeButtonActive
+                ]}
+              onPress={() => {
+                setUserType('billboard');
+                setOwnerStep('username');
+              }}
+              >
               <Monitor 
                 size={20} 
                 color={userType === 'billboard' ? '#FFFFFF' : (isDarkMode ? '#9CA3AF' : '#6B7280')} 
@@ -300,11 +327,17 @@ export default function LoginScreen() {
             {userType === 'business' ? (
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Mobile Number</Text>
-                <View style={[
-                  styles.inputWrapper,
-                  inputFocused === 'phone' && styles.inputWrapperFocused
-                ]}>
-                  <Phone size={20} color={isDarkMode ? '#9CA3AF' : '#6B7280'} style={{ marginRight: 12 }} />
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    inputFocused === 'phone' && styles.inputWrapperFocused,
+                  ]}
+                >
+                  <Phone
+                    size={20}
+                    color={isDarkMode ? '#9CA3AF' : '#6B7280'}
+                    style={{ marginRight: 12 }}
+                  />
                   <Text style={styles.countryCode}>+91</Text>
                   <TextInput
                     style={styles.input}
@@ -319,47 +352,58 @@ export default function LoginScreen() {
                   />
                 </View>
               </View>
+            ) : ownerStep === 'username' ? (
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Username</Text>
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    inputFocused === 'username' && styles.inputWrapperFocused,
+                  ]}
+                >
+                  <UserIcon
+                    size={20}
+                    color={isDarkMode ? '#9CA3AF' : '#6B7280'}
+                    style={{ marginRight: 12 }}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter username"
+                    placeholderTextColor={isDarkMode ? '#6B7280' : '#9CA3AF'}
+                    autoCapitalize="none"
+                    value={username}
+                    onChangeText={setUsername}
+                    onFocus={() => setInputFocused('username')}
+                    onBlur={() => setInputFocused(null)}
+                  />
+                </View>
+              </View>
             ) : (
-              <>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Username</Text>
-                  <View style={[
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Password</Text>
+                <View
+                  style={[
                     styles.inputWrapper,
-                    inputFocused === 'username' && styles.inputWrapperFocused
-                  ]}>
-                    <UserIcon size={20} color={isDarkMode ? '#9CA3AF' : '#6B7280'} style={{ marginRight: 12 }} />
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Enter username"
-                      placeholderTextColor={isDarkMode ? '#6B7280' : '#9CA3AF'}
-                      autoCapitalize="none"
-                      value={username}
-                      onChangeText={setUsername}
-                      onFocus={() => setInputFocused('username')}
-                      onBlur={() => setInputFocused(null)}
-                    />
-                  </View>
+                    inputFocused === 'password' && styles.inputWrapperFocused,
+                  ]}
+                >
+                  <Lock
+                    size={20}
+                    color={isDarkMode ? '#9CA3AF' : '#6B7280'}
+                    style={{ marginRight: 12 }}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter password"
+                    placeholderTextColor={isDarkMode ? '#6B7280' : '#9CA3AF'}
+                    secureTextEntry
+                    value={password}
+                    onChangeText={setPassword}
+                    onFocus={() => setInputFocused('password')}
+                    onBlur={() => setInputFocused(null)}
+                  />
                 </View>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Password</Text>
-                  <View style={[
-                    styles.inputWrapper,
-                    inputFocused === 'password' && styles.inputWrapperFocused
-                  ]}>
-                    <Lock size={20} color={isDarkMode ? '#9CA3AF' : '#6B7280'} style={{ marginRight: 12 }} />
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Enter password"
-                      placeholderTextColor={isDarkMode ? '#6B7280' : '#9CA3AF'}
-                      secureTextEntry
-                      value={password}
-                      onChangeText={setPassword}
-                      onFocus={() => setInputFocused('password')}
-                      onBlur={() => setInputFocused(null)}
-                    />
-                  </View>
-                </View>
-              </>
+              </View>
             )}
 
             <TouchableOpacity
@@ -375,7 +419,11 @@ export default function LoginScreen() {
               ) : (
                 <>
                   <Text style={styles.continueButtonText}>
-                    {userType === 'business' ? 'Send OTP' : 'Login'}
+                    {userType === 'business'
+                      ? 'Send OTP'
+                      : ownerStep === 'username'
+                      ? 'Next'
+                      : 'Login'}
                   </Text>
                   <ArrowRight size={20} color="#FFFFFF" />
                 </>

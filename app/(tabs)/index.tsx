@@ -17,7 +17,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Search, MapPin, Star, Heart, Clock, Sun, Moon, User, Calendar, ChevronLeft, ChevronRight, Info, Plane } from 'lucide-react-native';
 import { useTheme } from './ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { TestVideoModeration } from '../../components/TestVideoModeration';
 import { locationService, Location } from '../../services/locationService';
 
 
@@ -885,7 +884,7 @@ export default function HomeScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={styles.heroSection}>
           <Image
-            source={require('../../assets/images/image.png')}
+            source={require('../../public/bg.png')}
             style={styles.heroImage}
           />
           <View style={styles.heroOverlay} />
@@ -1235,8 +1234,6 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* AI Moderation Test Component - Remove in production */}
-        <TestVideoModeration />
       </ScrollView>
     </SafeAreaView>
   );

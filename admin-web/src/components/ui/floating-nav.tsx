@@ -76,18 +76,12 @@ export function FloatingNav() {
     setActive(item.key)
 
     if (item.key === "download") {
-      const blob = new Blob(
-        ["BillBo download coming soon.\n\nThank you for your interest."],
-        { type: "text/plain" },
-      )
-      const url = URL.createObjectURL(blob)
       const link = document.createElement("a")
-      link.href = url
-      link.download = "BillBo-download.txt"
+      link.href = "/app.apk"
+      link.download = "BillBo-App.apk"
       document.body.appendChild(link)
       link.click()
       link.remove()
-      URL.revokeObjectURL(url)
       return
     }
 

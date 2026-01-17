@@ -18,6 +18,10 @@ export default function IndexScreen() {
   });
 
   useEffect(() => {
+    if (isLoading) {
+      return;
+    }
+
     if (!isLoading) {
       console.log('Index: Auth state changed - isAuthenticated:', isAuthenticated);
       console.log('Index: User Type:', userType);
