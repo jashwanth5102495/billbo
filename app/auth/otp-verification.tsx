@@ -279,16 +279,11 @@ export default function OTPVerificationScreen() {
     try {
       const type = getUserType();
       console.log('Skipping OTP with userType:', type);
-      
-      const success = await skipOTPLogin(phoneNumber!, type);
-      if (success) {
-        if (type === 'billboard') {
-          router.replace('/billboard-owner/welcome');
-        } else {
-          router.replace('/(tabs)');
-        }
+      await skipOTPLogin(phoneNumber!, type);
+      if (type === 'billboard') {
+        router.replace('/billboard-owner/welcome');
       } else {
-        Alert.alert('Error', 'Failed to skip OTP. Please try again.');
+        router.replace('/(tabs)');
       }
     } catch (error) {
       Alert.alert('Error', 'Something went wrong. Please try again.');

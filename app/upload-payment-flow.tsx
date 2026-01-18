@@ -4,10 +4,13 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { ArrowLeft, Video, Upload, CheckCircle, Play } from 'lucide-react-native';
 import { useTheme } from './(tabs)/ThemeContext';
 import * as ImagePicker from 'expo-image-picker';
+import { useAuth } from '../contexts/AuthContext';
+import { BusinessDataModal } from '../components/BusinessDataModal';
 
 export default function UploadPaymentFlowScreen() {
   const { isDarkMode } = useTheme();
   const params = useLocalSearchParams();
+  const { businessProfile } = useAuth();
   
   const totalPrice = parseFloat(params.totalPrice as string) || 0;
   const reputation = parseInt(params.reputation as string) || 40;
@@ -19,6 +22,7 @@ export default function UploadPaymentFlowScreen() {
   
   const [videoUri, setVideoUri] = useState<string | null>(params.mediaUri as string || null);
   const [loading, setLoading] = useState(false);
+  const [showBusinessModal, setShowBusinessModal] = useState(false);
 
   const pickVideo = async () => {
     try {
@@ -39,6 +43,12 @@ export default function UploadPaymentFlowScreen() {
   const handleProceedToPayment = () => {
     if (!videoUri) {
       Alert.alert('Video Required', 'Please upload a video advertisement to proceed.');
+      return;
+    }
+
+    if (!isPersonalWish && !businessProfile) {
+      Alert.alert('Business Information Required', 'Please fill your business details to continue with payment.');
+      setShowBusinessModal(true);
       return;
     }
 
@@ -307,6 +317,12 @@ export default function UploadPaymentFlowScreen() {
         
         <View style={{ height: 40 }} />
       </ScrollView>
+      
+      <BusinessDataModal
+        visible={showBusinessModal}
+        onClose={() => setShowBusinessModal(false)}
+        onComplete={() => setShowBusinessModal(false)}
+      />
     </View>
   );
 }

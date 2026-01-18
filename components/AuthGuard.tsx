@@ -9,7 +9,7 @@ interface AuthGuardProps {
 }
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const { isDarkMode } = useTheme();
 
   const styles = StyleSheet.create({
@@ -22,11 +22,31 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   });
 
   React.useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      console.log('AuthGuard: User not authenticated, redirecting to login...');
-      router.replace('/auth/login');
+    console.log(
+      'AuthGuard: State update - isLoading:',
+      isLoading,
+      'isAuthenticated:',
+      isAuthenticated,
+      'user:',
+      user?.id
+    );
+
+    if (!isLoading) {
+      const timeoutId = setTimeout(() => {
+        if (!isAuthenticated) {
+          console.log(
+            'AuthGuard: Delayed redirect to login - isAuthenticated:',
+            isAuthenticated
+          );
+          router.replace('/auth/login');
+        } else {
+          console.log('AuthGuard: User authenticated - allowing access');
+        }
+      }, 500);
+
+      return () => clearTimeout(timeoutId);
     }
-  }, [isAuthenticated, isLoading]);
+  }, [isAuthenticated, isLoading, user]);
 
   if (isLoading) {
     return (

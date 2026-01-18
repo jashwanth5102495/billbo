@@ -20,7 +20,7 @@ import { useTheme } from '../(tabs)/ThemeContext';
 
 export default function LoginScreen() {
   const { isDarkMode, toggleTheme } = useTheme();
-  const { sendOTP, login } = useAuth();
+  const { sendOTP, login, skipOTPLogin } = useAuth();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -182,6 +182,16 @@ export default function LoginScreen() {
       color: '#FFFFFF',
       marginRight: 8,
     },
+    devSkipButton: {
+      marginTop: 16,
+      alignItems: 'center',
+      paddingVertical: 8,
+    },
+    devSkipButtonText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: '#A855F7',
+    },
     footer: {
       alignItems: 'center',
       paddingBottom: 32,
@@ -252,6 +262,23 @@ export default function LoginScreen() {
           Alert.alert('Login Failed', 'Invalid username or password');
         }
       }
+    } catch (error) {
+      Alert.alert('Error', 'Something went wrong. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSkipOTP = async () => {
+    if (!validatePhoneNumber(phoneNumber)) {
+      Alert.alert('Invalid Phone Number', 'Please enter a valid 10-digit mobile number');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await skipOTPLogin(`+91${phoneNumber}`, 'business');
+      router.replace('/(tabs)');
     } catch (error) {
       Alert.alert('Error', 'Something went wrong. Please try again.');
     } finally {
@@ -429,6 +456,16 @@ export default function LoginScreen() {
                 </>
               )}
             </TouchableOpacity>
+
+            {__DEV__ && userType === 'business' && (
+              <TouchableOpacity
+                style={styles.devSkipButton}
+                onPress={handleSkipOTP}
+                disabled={isLoading}
+              >
+                <Text style={styles.devSkipButtonText}>Skip OTP (Development)</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           <View style={styles.footer}>

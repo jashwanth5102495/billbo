@@ -97,6 +97,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const skipOTPLogin = async (phoneNumber: string, type: 'business' | 'billboard' = 'business'): Promise<boolean> => {
     try {
+      if (__DEV__) {
+        const mockUser: User = {
+          id: `user_${Date.now()}`,
+          phoneNumber,
+          name: 'Test User',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        setUser(mockUser);
+        setUserType(type);
+        await AsyncStorage.setItem('authToken', `mock_token_${Date.now()}`);
+        await AsyncStorage.setItem('userData', JSON.stringify(mockUser));
+        await AsyncStorage.setItem('userType', type);
+        return true;
+      }
+
       const result = await authService.skipOTP(phoneNumber);
       if (result.success && result.user && result.token) {
         setUser(result.user);
@@ -105,7 +122,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         await AsyncStorage.setItem('userData', JSON.stringify(result.user));
         await AsyncStorage.setItem('userType', type);
         
-        // Load business profile if exists
         if (result.businessProfile) {
           setBusinessProfile(result.businessProfile);
           await AsyncStorage.setItem('businessProfile', JSON.stringify(result.businessProfile));
