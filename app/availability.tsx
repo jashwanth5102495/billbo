@@ -24,6 +24,10 @@ export default function AvailabilityScreen() {
   const params = useLocalSearchParams();
   const date = params.date ? new Date(params.date as string) : null;
   
+  const API_ROOT = Platform.OS === 'android' 
+    ? 'http://10.0.2.2:3000' 
+    : 'http://localhost:3000';
+  
   const [billboards, setBillboards] = useState<Billboard[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,11 +37,7 @@ export default function AvailabilityScreen() {
 
   const fetchBillboards = async () => {
     try {
-      const API_URL = Platform.OS === 'android' 
-        ? 'http://10.0.2.2:3000/api' 
-        : 'http://localhost:3000/api';
-
-      const response = await fetch(`${API_URL}/billboards`);
+      const response = await fetch(`${API_ROOT}/api/billboards`);
       const data = await response.json();
       
       if (Array.isArray(data)) {
@@ -151,37 +151,43 @@ export default function AvailabilityScreen() {
           No billboards found.
         </Text>
       ) : (
-        billboards.map(billboard => (
-          <TouchableOpacity 
-            key={billboard._id} 
-            style={styles.card}
-            activeOpacity={0.7}
-            onPress={() => router.push({ 
-              pathname: '/book-slot', 
-              params: { 
-                billboardId: billboard._id,
-                date: date?.toISOString()
-              } 
-            })}
-          >
-            <Image 
-              source={{ uri: billboard.image || 'https://via.placeholder.com/150' }} 
-              style={styles.slotImage} 
-            />
-            <View style={styles.slotContent}>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{billboard.type}</Text>
+        billboards.map(billboard => {
+          const imageUri = billboard.image
+            ? (billboard.image.startsWith('http') ? billboard.image : `${API_ROOT}${billboard.image}`)
+            : 'https://via.placeholder.com/150';
+
+          return (
+            <TouchableOpacity 
+              key={billboard._id} 
+              style={styles.card}
+              activeOpacity={0.7}
+              onPress={() => router.push({ 
+                pathname: '/book-slot', 
+                params: { 
+                  billboardId: billboard._id,
+                  date: date?.toISOString()
+                } 
+              })}
+            >
+              <Image 
+                source={{ uri: imageUri }} 
+                style={styles.slotImage} 
+              />
+              <View style={styles.slotContent}>
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{billboard.type}</Text>
+                </View>
+                <Text style={styles.slotTitle}>{billboard.name}</Text>
+                <Text style={styles.slotLocation}>{billboard.location}</Text>
+                <Text style={styles.slotPrice}>
+                  {billboard.type === 'Static' 
+                    ? `₹${billboard.price}/day` 
+                    : 'View Packages'}
+                </Text>
               </View>
-              <Text style={styles.slotTitle}>{billboard.name}</Text>
-              <Text style={styles.slotLocation}>{billboard.location}</Text>
-              <Text style={styles.slotPrice}>
-                {billboard.type === 'Static' 
-                  ? `₹${billboard.price}/day` 
-                  : 'View Packages'}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        ))
+            </TouchableOpacity>
+          );
+        })
       )}
     </ScrollView>
   );

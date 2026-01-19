@@ -6,7 +6,7 @@ import { useTheme } from './(tabs)/ThemeContext';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../contexts/AuthContext';
 import { BusinessDataModal } from '../components/BusinessDataModal';
-
+import { videoModerationService } from '../services/videoModerationService';
 export default function UploadPaymentFlowScreen() {
   const { isDarkMode } = useTheme();
   const params = useLocalSearchParams();
@@ -40,58 +40,81 @@ export default function UploadPaymentFlowScreen() {
     }
   };
 
-  const handleProceedToPayment = () => {
+  const handleProceedToPayment = async (options?: { skipBusinessCheck?: boolean }) => {
     if (!videoUri) {
       Alert.alert('Video Required', 'Please upload a video advertisement to proceed.');
       return;
     }
 
-    if (!isPersonalWish && !businessProfile) {
+    if (!options?.skipBusinessCheck && !isPersonalWish && !businessProfile) {
       Alert.alert('Business Information Required', 'Please fill your business details to continue with payment.');
       setShowBusinessModal(true);
       return;
     }
 
     setLoading(true);
-    
-    // Construct cart items for Razorpay checkout
-    // Calculate per-item price based on consumed time logic (same as calculate-price screen)
-    // Formula: Cost = (SlotPrice / SlotDuration) * Consumed Time * Days
-    
-    const SLOT_DURATION_SECONDS = 21600; // 6 hours * 60 * 60
-    const dailyConsumedSeconds = duration * reputation;
 
-    const cartItems = selectedPackages.map((pkg: any) => {
-      const costPerSecond = (pkg.price || 0) / SLOT_DURATION_SECONDS;
-      const itemPrice = costPerSecond * dailyConsumedSeconds * days;
-      
-      return {
-        id: pkg.id,
-        name: `${billboardName} - ${pkg.name}`,
-        desc: `Duration: ${days} Day(s), Reputation: ${reputation}, Time: ${pkg.time}, Length: ${duration}s`,
-        price: `₹${Math.round(itemPrice).toFixed(2)}`,
-        billboardId: params.billboardId,
-        billboardName: billboardName,
-        location: params.location || 'Unknown Location',
-        date: params.date,
-        time: pkg.time,
-        slotTime: pkg.time,
-        videoUri: videoUri, // Pass the local video URI
-        reputation: reputation,
-        days: days,
-        duration: duration
-      };
-    });
+    try {
+      const moderationResult = await videoModerationService.moderateVideoSimple(videoUri);
 
-    // Pass as cart param to razorpay-checkout
-    router.push({
-      pathname: '/razorpay-checkout',
-      params: {
-        cart: JSON.stringify(cartItems),
-        total: totalPrice.toString()
+      if (!moderationResult.approved) {
+        setLoading(false);
+        Alert.alert(
+          'Video Rejected',
+          moderationResult.reason ||
+            'Your video does not meet our content guidelines. Please upload a different video and try again.'
+        );
+        return;
       }
-    });
-    
+
+      Alert.alert(
+        'Video Approved',
+        'Your video has been approved by our AI checks. You can proceed to payment.'
+      );
+
+      const SLOT_DURATION_SECONDS = 21600;
+      const dailyConsumedSeconds = duration * reputation;
+
+      const cartItems = selectedPackages.map((pkg: any) => {
+        const costPerSecond = (pkg.price || 0) / SLOT_DURATION_SECONDS;
+        const itemPrice = costPerSecond * dailyConsumedSeconds * days;
+
+        return {
+          id: pkg.id,
+          name: `${billboardName} - ${pkg.name}`,
+          desc: `Duration: ${days} Day(s), Reputation: ${reputation}, Time: ${pkg.time}, Length: ${duration}s`,
+          price: `₹${Math.round(itemPrice).toFixed(2)}`,
+          billboardId: params.billboardId,
+          billboardName: billboardName,
+          location: params.location || 'Unknown Location',
+          date: params.date,
+          time: pkg.time,
+          slotTime: pkg.time,
+          videoUri: videoUri,
+          reputation: reputation,
+          days: days,
+          duration: duration
+        };
+      });
+
+      router.push({
+        pathname: '/razorpay-checkout',
+        params: {
+          cart: JSON.stringify(cartItems),
+          total: totalPrice.toString(),
+          moderationStatus: 'approved',
+          moderationNotes: 'Approved by AI check'
+        }
+      });
+    } catch (error) {
+      setLoading(false);
+      Alert.alert(
+        'Analysis Error',
+        'We could not analyze your video. Please try again with a different video.'
+      );
+      return;
+    }
+
     setLoading(false);
   };
 
@@ -321,7 +344,10 @@ export default function UploadPaymentFlowScreen() {
       <BusinessDataModal
         visible={showBusinessModal}
         onClose={() => setShowBusinessModal(false)}
-        onComplete={() => setShowBusinessModal(false)}
+        onComplete={() => {
+          setShowBusinessModal(false);
+          handleProceedToPayment({ skipBusinessCheck: true });
+        }}
       />
     </View>
   );

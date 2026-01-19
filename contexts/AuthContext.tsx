@@ -42,14 +42,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const checkAuthStatus = async () => {
     try {
-      const token = await AsyncStorage.getItem('authToken');
-      const userData = await AsyncStorage.getItem('userData');
-      const storedUserType = await AsyncStorage.getItem('userType') as 'business' | 'billboard' | null;
-      const profileData = await AsyncStorage.getItem('businessProfile');
+      const [token, userData, storedUserType, profileData] = await Promise.all([
+        AsyncStorage.getItem('authToken'),
+        AsyncStorage.getItem('userData'),
+        AsyncStorage.getItem('userType'),
+        AsyncStorage.getItem('businessProfile'),
+      ]);
 
       if (token && userData) {
         setUser(JSON.parse(userData));
-        setUserType(storedUserType || 'business'); // Default to business for backward compatibility
+        const resolvedType = (storedUserType as 'business' | 'billboard' | null) || 'business';
+        setUserType(resolvedType);
         if (profileData) {
           setBusinessProfile(JSON.parse(profileData));
         }
@@ -97,23 +100,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const skipOTPLogin = async (phoneNumber: string, type: 'business' | 'billboard' = 'business'): Promise<boolean> => {
     try {
-      if (__DEV__) {
-        const mockUser: User = {
-          id: `user_${Date.now()}`,
-          phoneNumber,
-          name: 'Test User',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
-        setUser(mockUser);
-        setUserType(type);
-        await AsyncStorage.setItem('authToken', `mock_token_${Date.now()}`);
-        await AsyncStorage.setItem('userData', JSON.stringify(mockUser));
-        await AsyncStorage.setItem('userType', type);
-        return true;
-      }
-
       const result = await authService.skipOTP(phoneNumber);
       if (result.success && result.user && result.token) {
         setUser(result.user);
@@ -178,10 +164,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         await AsyncStorage.setItem('businessProfile', JSON.stringify(result.profile));
         return true;
       }
-      console.log('❌ Failed to update business profile:', result.message);
+      console.log('❌ Failed to update business profile via API:', result.message);
       return false;
     } catch (error) {
       console.error('❌ Update profile error:', error);
+      if (!user) return false;
       return false;
     }
   };

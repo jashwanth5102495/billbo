@@ -16,6 +16,7 @@ export default function BookSlotScreen() {
   const [bookedSlots, setBookedSlots] = useState<any[]>([]);
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
   const [slotUsage, setSlotUsage] = useState<any>({});
+  const SLOT_CAPACITY_SECONDS = 21600;
 
   useEffect(() => {
     if (billboardId) {
@@ -68,22 +69,11 @@ export default function BookSlotScreen() {
 
   const isSlotBooked = (slotId: string, type: string) => {
     if (type === 'Static') {
-        return bookedSlots.length > 0;
+      return bookedSlots.length > 0;
     }
 
-    const timeMap: Record<string, { start: string, end: string }> = {
-        'morning': { start: '06:00', end: '12:00' },
-        'afternoon': { start: '12:00', end: '17:00' },
-        'evening': { start: '17:00', end: '21:00' },
-        'night': { start: '21:00', end: '06:00' }
-    };
-
-    const slotTime = timeMap[slotId];
-    if (!slotTime) return false;
-
-    return bookedSlots.some(booking => {
-        return booking.startTime === slotTime.start; 
-    });
+    const used = slotUsage && typeof slotUsage[slotId] === 'number' ? slotUsage[slotId] : 0;
+    return used >= SLOT_CAPACITY_SECONDS;
   };
 
   const getPackages = () => {
@@ -182,6 +172,7 @@ export default function BookSlotScreen() {
         basePrice: basePriceTotal.toString(),
         billboardName: billboard?.name || 'Billboard',
         selectedPackages: JSON.stringify(selectedPackages),
+        slotUsage: JSON.stringify(slotUsage),
         billboardId: billboardId,
         date: date,
         mediaUri: mediaUri,

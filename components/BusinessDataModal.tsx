@@ -186,9 +186,7 @@ export const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
     try {
       const success = await updateBusinessProfile(formData);
       if (success) {
-        Alert.alert('Success', 'Business information saved successfully!', [
-          { text: 'OK', onPress: onComplete }
-        ]);
+        onComplete();
       } else {
         Alert.alert('Error', 'Failed to save business information. Please try again.');
       }
@@ -392,10 +390,10 @@ export const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
             <TouchableOpacity
               style={[
                 styles.saveButton,
-                (!validateForm() || isLoading) && styles.saveButtonDisabled
+                isLoading && styles.saveButtonDisabled
               ]}
               onPress={handleSave}
-              disabled={!validateForm() || isLoading}
+              disabled={isLoading}
             >
               {isLoading ? (
                 <ActivityIndicator color="#FFFFFF" />

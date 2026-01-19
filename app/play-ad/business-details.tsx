@@ -22,6 +22,25 @@ export default function BusinessDetailsScreen() {
   
   const [showBusinessModal, setShowBusinessModal] = useState(false);
 
+  const goToConfirmation = () => {
+    if (!businessProfile) return;
+
+    router.push({
+      pathname: '/play-ad/confirmation',
+      params: {
+        ...params,
+        businessName: businessProfile.businessName,
+        ownerName: businessProfile.ownerName,
+        email: businessProfile.email,
+        address: businessProfile.address,
+        city: businessProfile.city,
+        state: businessProfile.state,
+        pincode: businessProfile.pincode,
+        videoUri: params.videoUri,
+      }
+    });
+  };
+
   useEffect(() => {
     // Show business data modal if user doesn't have business profile
     if (!businessProfile) {
@@ -189,6 +208,7 @@ export default function BusinessDetailsScreen() {
 
   const handleBusinessDataComplete = () => {
     setShowBusinessModal(false);
+    goToConfirmation();
   };
 
   const handleContinue = () => {
@@ -198,20 +218,7 @@ export default function BusinessDetailsScreen() {
       return;
     }
 
-    router.push({
-      pathname: '/play-ad/confirmation',
-      params: {
-        ...params,
-        businessName: businessProfile.businessName,
-        ownerName: businessProfile.ownerName,
-        email: businessProfile.email,
-        address: businessProfile.address,
-        city: businessProfile.city,
-        state: businessProfile.state,
-        pincode: businessProfile.pincode,
-        videoUri: params.videoUri,
-      }
-    });
+    goToConfirmation();
   };
 
   return (

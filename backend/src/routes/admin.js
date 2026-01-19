@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../models/User');
 const Billboard = require('../models/Billboard');
 const Booking = require('../models/Booking');
+const BusinessProfile = require('../models/BusinessProfile');
 const { auth, isAdmin } = require('../middleware/auth');
 const bcrypt = require('bcryptjs');
 
@@ -130,18 +131,33 @@ router.get('/owners', auth, isAdmin, async (req, res) => {
   }
 });
 
-// List Business Owners
+// List Business Owners with business profile details
 router.get('/business-owners', auth, isAdmin, async (req, res) => {
   try {
     const owners = await User.find({ role: 'business' })
       .select('-password')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const userIds = owners.map((owner) => owner._id);
+    const profiles = await BusinessProfile.find({ userId: { $in: userIds } }).lean();
+
+    const profileMap = profiles.reduce((map, profile) => {
+      map[profile.userId.toString()] = profile;
+      return map;
+    }, {});
+
+    const ownersWithProfiles = owners.map((owner) => ({
+      ...owner,
+      businessProfile: profileMap[owner._id.toString()] || null,
+    }));
       
     res.json({
       success: true,
-      owners
+      owners: ownersWithProfiles,
     });
   } catch (error) {
+    console.error('Get business owners error:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Server error while fetching business owners' 
@@ -315,6 +331,30 @@ router.get('/availability', auth, isAdmin, async (req, res) => {
   } catch (error) {
     console.error('Fetch availability error:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch availability' });
+  }
+});
+
+// Get detailed info for a specific user (Admin)
+router.get('/users/:userId/details', auth, isAdmin, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const bookings = await Booking.find({ userId })
+      .populate('billboardId', 'name location')
+      .sort({ createdAt: -1 });
+      
+    const user = await User.findById(userId).select('-password');
+    const profile = await BusinessProfile.findOne({ userId });
+
+    const stats = {
+      totalAds: bookings.length,
+      totalSpent: bookings.reduce((sum, b) => sum + (b.price || 0), 0),
+      activeAds: bookings.filter(b => b.status === 'active' || b.status === 'confirmed').length
+    };
+
+    res.json({ success: true, bookings, user, profile, stats });
+  } catch (error) {
+    console.error('Fetch user details error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch user details' });
   }
 });
 

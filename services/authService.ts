@@ -105,36 +105,6 @@ class AuthService {
       return response;
     } catch (error) {
       console.error('Login error:', error);
-
-      // Development fallback
-      // Check for common network errors that indicate backend is down or broken
-      const isNetworkError = 
-        error.message.includes('Cannot connect to server') || 
-        error.message.includes('Network request failed') ||
-        error.message.includes('fetch') ||
-        error.message.includes('Network') ||
-        error.message.includes('500') || 
-        error.message.includes('502') || 
-        error.message.includes('503');
-
-      if (__DEV__ && isNetworkError) {
-        console.log('🔧 Development mode: Backend not running or erroring, using mock user');
-        const mockUser: User = {
-          id: `user_${Date.now()}`,
-          phoneNumber: identifier,
-          name: 'Test User',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
-        return {
-          success: true,
-          user: mockUser,
-          token: `mock_token_${Date.now()}`,
-          message: 'Development mode - mock login successful'
-        };
-      }
-
       return { success: false, message: error.message };
     }
   }
@@ -152,20 +122,6 @@ class AuthService {
       return response.success;
     } catch (error) {
       console.error('Send OTP error:', error);
-
-      // Development fallback
-      // Check for common network errors that indicate backend is down
-      const isNetworkError = 
-        error.message.includes('Cannot connect to server') || 
-        error.message.includes('Network request failed') ||
-        error.message.includes('fetch') ||
-        error.message.includes('Network');
-
-      if (__DEV__ && isNetworkError) {
-        console.log('🔧 Development mode: Backend not running, simulating OTP sent');
-        return true;
-      }
-
       return false;
     }
   }
@@ -190,36 +146,6 @@ class AuthService {
       return response;
     } catch (error) {
       console.error('Skip OTP error:', error);
-      
-      // Development fallback - if backend is not running, create mock user
-      // Check for common network errors that indicate backend is down or broken
-      const isNetworkError = 
-        error.message.includes('Cannot connect to server') || 
-        error.message.includes('Network request failed') ||
-        error.message.includes('fetch') ||
-        error.message.includes('Network') ||
-        error.message.includes('500') || 
-        error.message.includes('502') || 
-        error.message.includes('503');
-
-      if (__DEV__ && isNetworkError) {
-        console.log('🔧 Development mode: Backend not running or erroring, using mock user');
-        const mockUser: User = {
-          id: `user_${Date.now()}`,
-          phoneNumber,
-          name: 'Test User',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
-        return {
-          success: true,
-          user: mockUser,
-          token: `mock_token_${Date.now()}`,
-          message: 'Development mode - mock login successful'
-        };
-      }
-      
       return { success: false, message: 'Skip OTP failed' };
     }
   }
@@ -243,36 +169,37 @@ class AuthService {
    */
   async updateBusinessProfile(userId: string, profile: Partial<BusinessProfile>): Promise<ProfileResponse> {
     try {
-      console.log('🏢 Creating business profile for user:', userId);
+      console.log('🏢 Saving business profile for user:', userId);
       console.log('🏢 Profile data:', profile);
-      
-      // For new profiles, always use POST to /business-profiles
-      const response = await this.makeRequest('/business-profiles', {
-        method: 'POST',
-        body: JSON.stringify(profile),
-      });
 
-      console.log('🏢 Business profile creation response:', response);
+      // Check if profile already exists
+      let existingProfile: BusinessProfile | null = null;
+      try {
+        existingProfile = await this.getBusinessProfile(userId);
+      } catch (checkError) {
+        console.warn('⚠️ Could not check existing business profile:', checkError);
+      }
+
+      let response: ProfileResponse;
+
+      if (existingProfile) {
+        console.log('🏢 Existing profile found, updating via PUT');
+        response = await this.makeRequest(`/business-profiles/user/${userId}`, {
+          method: 'PUT',
+          body: JSON.stringify(profile),
+        });
+      } else {
+        console.log('🏢 No existing profile, creating via POST');
+        response = await this.makeRequest('/business-profiles', {
+          method: 'POST',
+          body: JSON.stringify(profile),
+        });
+      }
+
+      console.log('🏢 Business profile save response:', response);
       return response;
     } catch (error) {
       console.error('❌ Update business profile error:', error);
-      
-      // Development fallback
-      if (__DEV__ && error.message.includes('Cannot connect to server')) {
-        console.log('🔧 Development mode: Backend not running, using mock profile');
-        return {
-          success: true,
-          profile: {
-            id: `profile_${Date.now()}`,
-            userId,
-            ...profile,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          } as BusinessProfile,
-          message: 'Development mode - mock profile created'
-        };
-      }
-      
       return { success: false, message: 'Profile update failed' };
     }
   }

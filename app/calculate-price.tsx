@@ -14,6 +14,7 @@ export default function CalculatePriceScreen() {
   const billboardName = params.billboardName as string || 'Billboard';
   const selectedPackages = params.selectedPackages ? JSON.parse(params.selectedPackages as string) : [];
   const selectedSlots = selectedPackages.map((p: any) => p.name);
+  const slotUsage = params.slotUsage ? JSON.parse(params.slotUsage as string) : {};
   
   // Logic for average price
   const numSlots = selectedPackages.length || 1;
@@ -41,6 +42,16 @@ export default function CalculatePriceScreen() {
   const DURATION_STEP = 5;
 
   const SLOT_DURATION_SECONDS = 21600; // 6 hours * 60 * 60
+
+  const availableTime = (() => {
+    if (selectedPackages.length === 0) return SLOT_DURATION_SECONDS;
+    let maxUsage = 0;
+    selectedPackages.forEach((pkg: any) => {
+        const usage = slotUsage[pkg.id] || 0;
+        if (usage > maxUsage) maxUsage = usage;
+    });
+    return Math.max(0, SLOT_DURATION_SECONDS - maxUsage);
+  })();
 
   useEffect(() => {
     calculateTotal();
@@ -411,6 +422,21 @@ export default function CalculatePriceScreen() {
             <Text style={[styles.breakdownLabel, { fontWeight: 'bold' }]}>Daily Cost:</Text>
             <Text style={[styles.breakdownValue, { fontWeight: 'bold', color: '#2563eb' }]}>
               ₹{Math.round((averageBasePrice / 21600) * (duration * reputation)).toLocaleString()}
+            </Text>
+          </View>
+        </View>
+
+        {/* Available Time Box */}
+        <View style={styles.breakdownContainer}>
+          <Text style={styles.breakdownTitle}>Available Time</Text>
+          <View style={styles.breakdownRow}>
+            <Text style={styles.breakdownLabel}>Total Capacity:</Text>
+            <Text style={styles.breakdownValue}>{SLOT_DURATION_SECONDS.toLocaleString()} seconds</Text>
+          </View>
+          <View style={styles.breakdownRow}>
+            <Text style={styles.breakdownLabel}>Remaining:</Text>
+            <Text style={[styles.breakdownValue, { color: availableTime < (duration * reputation) ? '#EF4444' : '#2563eb' }]}>
+              {availableTime.toLocaleString()} seconds
             </Text>
           </View>
         </View>

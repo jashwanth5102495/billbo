@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Search, MapPin, Star, Heart, Clock, Sun, Moon, User, Calendar, ChevronLeft, ChevronRight, Info, Plane } from 'lucide-react-native';
+import { Search, MapPin, Star, Heart, Clock, Sun, Moon, User, Calendar, ChevronLeft, ChevronRight, Info } from 'lucide-react-native';
 import { useTheme } from './ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { locationService, Location } from '../../services/locationService';
@@ -629,8 +629,27 @@ export default function HomeScreen() {
       borderRadius: 2,
       marginHorizontal: 3,
     },
-    flightCardPlane: {
+    billboardIcon: {
       marginHorizontal: 8,
+      alignItems: 'center',
+    },
+    billboardScreen: {
+      width: 18,
+      height: 10,
+      borderRadius: 2,
+      borderWidth: 2,
+      borderColor: '#FFFFFF',
+    },
+    billboardLegs: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      width: 12,
+      marginTop: 2,
+    },
+    billboardLeg: {
+      width: 2,
+      height: 5,
+      backgroundColor: '#FFFFFF',
     },
     // Calendar Modal Styles
     modalOverlay: {
@@ -1203,13 +1222,19 @@ export default function HomeScreen() {
                       <Text style={styles.flightCardLocation}>{item.name}</Text>
                     </View>
 
-                    {/* Center with plane and route */}
+                    {/* Center with billboard icon and route */}
                     <View style={styles.flightCardCenter}>
                       <View style={styles.flightCardRoute}>
                         <View style={styles.flightCardDots} />
                         <View style={styles.flightCardDots} />
                         <View style={styles.flightCardDots} />
-                        <Plane size={16} color="#FFFFFF" style={styles.flightCardPlane} />
+                        <View style={styles.billboardIcon}>
+                          <View style={styles.billboardScreen} />
+                          <View style={styles.billboardLegs}>
+                            <View style={styles.billboardLeg} />
+                            <View style={styles.billboardLeg} />
+                          </View>
+                        </View>
                         <View style={styles.flightCardDots} />
                         <View style={styles.flightCardDots} />
                         <View style={styles.flightCardDots} />

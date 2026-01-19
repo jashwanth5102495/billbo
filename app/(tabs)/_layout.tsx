@@ -13,13 +13,13 @@ export default function TabLayout() {
         screenOptions={({ route }) => ({
           headerShown: false,
           tabBarStyle: {
-            backgroundColor: '#2A2A2A', // Dark background like in your image
+            backgroundColor: '#2A2A2A',
             borderTopWidth: 0,
-            height: 80,
+            height: 64,
             position: 'absolute',
             left: 20,
             right: 20,
-            bottom: 20,
+            bottom: 16,
             borderRadius: 40,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 10 },
@@ -27,7 +27,7 @@ export default function TabLayout() {
             shadowRadius: 20,
             elevation: 30,
             paddingHorizontal: 10,
-            paddingVertical: 10,
+            paddingVertical: 4,
           },
           tabBarShowLabel: false,
           tabBarIcon: ({ focused, size }) => {
@@ -55,16 +55,15 @@ export default function TabLayout() {
             }
 
             if (focused) {
-              // Active tab with green circle background
               return (
                 <View style={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: 30,
-                  backgroundColor: '#9AFF9A', // Light green like in your image
+                  width: 54,
+                  height: 54,
+                  borderRadius: 27,
+                  backgroundColor: 'rgba(168, 85, 247, 0.95)',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  shadowColor: '#9AFF9A',
+                  shadowColor: '#A855F7',
                   shadowOffset: { width: 0, height: 4 },
                   shadowOpacity: 0.4,
                   shadowRadius: 8,
@@ -74,11 +73,10 @@ export default function TabLayout() {
                 </View>
               );
             } else {
-              // Inactive tabs - normal white icons
               return (
                 <View style={{
-                  width: 50,
-                  height: 50,
+                  width: 44,
+                  height: 44,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}>

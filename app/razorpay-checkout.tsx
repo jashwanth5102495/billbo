@@ -41,12 +41,12 @@ export default function RazorpayCheckoutScreen() {
   const params = useLocalSearchParams();
   const webviewRef = useRef(null);
   const { clearCart } = useContext(CartContext);
-  const { addBooking, updateBookingStatus } = useBookings();
+  const { addBooking, updateBookingStatus, refreshBookings } = useBookings();
   const [isScriptReady, setIsScriptReady] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
 
   // Get booking details from params
-  const { pkg, date, slot, cart, total } = params;
+  const { pkg, date, slot, cart, total, moderationStatus: initialModerationStatus, moderationNotes: initialModerationNotes } = params;
   const packageObj = useMemo(() => {
     try {
       return pkg ? JSON.parse(decodeURIComponent(pkg as string)) : null;
@@ -161,6 +161,8 @@ export default function RazorpayCheckoutScreen() {
           
           console.log('Backend API URL:', API_URL);
           
+          let allBookingsCreated = true;
+          
           for (const item of itemsToProcess) {
              const timeData = parseTime(item.time || item.slotTime || '');
              
@@ -254,9 +256,9 @@ export default function RazorpayCheckoutScreen() {
                razorpayPaymentId: data.payment_id
              };
              
-             console.log('Creating booking:', payload);
+            console.log('Creating booking:', payload);
 
-             const response = await fetch(`${API_URL}/bookings`, {
+            const response = await fetch(`${API_URL}/bookings`, {
                method: 'POST',
                headers: {
                  'Content-Type': 'application/json',
@@ -265,17 +267,35 @@ export default function RazorpayCheckoutScreen() {
                body: JSON.stringify(payload)
              });
              
-             const resData = await response.json();
-             if (!resData.success) {
-               console.error('Backend booking creation failed:', resData);
-               Alert.alert('Booking Error', `Failed to save booking: ${resData.message || 'Unknown error'}`);
-             } else {
-               console.log('Backend booking created:', resData);
-             }
+            let resData: any = null;
+            try {
+              resData = await response.json();
+            } catch (parseErr) {
+              console.error('Failed to parse booking response JSON:', parseErr);
+            }
+
+            if (!response.ok || !resData?.success) {
+              allBookingsCreated = false;
+              console.error('Backend booking creation failed. Status:', response.status, 'Body:', resData);
+              Alert.alert(
+                'Booking Error', 
+                resData?.message 
+                  ? `Failed to save booking: ${resData.message}` 
+                  : 'Failed to save booking on server. Please try again.'
+              );
+              break;
+            }
+
+            console.log('Backend booking created:', resData);
+          }
+
+          if (!allBookingsCreated) {
+            return;
           }
         } catch (err) {
            console.error('Failed to sync booking to backend', err);
            Alert.alert('Connection Error', `Failed to connect to server at ${Platform.OS === 'android' ? '10.0.2.2' : 'localhost'}. Check your network or backend.`);
+           return;
         }
 
         // 2. Local Context Updates
@@ -344,13 +364,14 @@ export default function RazorpayCheckoutScreen() {
         if (cart || total) {
           clearCart();
         }
+        await refreshBookings();
         router.replace('/(tabs)/history');
       } else {
         Alert.alert('Cancelled', 'Payment Cancelled');
         router.back();
       }
     },
-    [cart, cartObj, clearCart, total, date, slot, packageObj, addBooking, updateBookingStatus]
+    [cart, cartObj, clearCart, total, date, slot, packageObj, addBooking, updateBookingStatus, refreshBookings]
   );
 
   useEffect(() => {
