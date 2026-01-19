@@ -4,17 +4,25 @@
     "slug": "bolt-expo-nativewind",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./public/cover.jpeg",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
+    "android": {
+      "package": "com.jashwanth5144320.boltexponativewind"
+    },
     "web": {
       "bundler": "metro",
       "output": "single",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./public/cover.jpeg"
+    },
+    "splash": {
+      "image": "./public/cover.jpeg",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
     },
     "plugins": [
       "expo-router",
@@ -29,9 +37,6 @@
       "eas": {
         "projectId": "a40242f2-fabf-40df-a3a2-bb79ef1deef4"
       }
-    },
-    "android": {
-      "package": "com.jashwanth5144320.boltexponativewind"
     }
   }
 }
