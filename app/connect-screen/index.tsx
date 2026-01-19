@@ -8,7 +8,6 @@ import {
   useColorScheme,
   ScrollView,
   Alert,
-  Platform,
   ActivityIndicator,
   Image,
   Modal,
@@ -17,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { ArrowLeft, Monitor, Calendar, User, Phone, Upload, MapPin } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { API_BASE_URL } from '../../config/env';
 
 export default function ConnectScreenScreen() {
   // Force reload
@@ -257,14 +257,10 @@ export default function ConnectScreenScreen() {
 
     setLoading(true);
     try {
-      const API_URL = Platform.OS === 'android' 
-        ? 'http://10.0.2.2:3000/api' 
-        : 'http://localhost:3000/api';
-      
-      console.log('Submitting request to:', API_URL);
+      console.log('Submitting request to:', API_BASE_URL);
       console.log('Data:', { brand, purchaseDate, contactPerson, contactNumber, address });
 
-      const response = await fetch(`${API_URL}/requests/connect`, {
+      const response = await fetch(`${API_BASE_URL}/requests/connect`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

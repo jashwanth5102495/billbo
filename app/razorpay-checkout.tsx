@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useContext, useState } from 'react';
-import { View, ActivityIndicator, StyleSheet, Alert, Platform, Text, TouchableOpacity } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Alert, Text, TouchableOpacity } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useLocalSearchParams, router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -8,6 +8,7 @@ import { CartContext } from './(tabs)/cart-context';
 import { useBookings } from './(tabs)/BookingContext';
 import { videoStorageService } from '../services/videoStorageService';
 import { videoModerationService } from '../services/videoModerationService';
+import { API_BASE_URL } from '../config/env';
 
 const RAZORPAY_KEY_ID = 'rzp_test_NyLZPzYHIYtxqW';
 
@@ -157,7 +158,7 @@ export default function RazorpayCheckoutScreen() {
         // 1. Create Backend Bookings
         try {
           const token = await AsyncStorage.getItem('authToken');
-          const API_URL = Platform.OS === 'android' ? 'http://10.0.2.2:3000/api' : 'http://localhost:3000/api';
+          const API_URL = API_BASE_URL;
           
           console.log('Backend API URL:', API_URL);
           
@@ -294,7 +295,7 @@ export default function RazorpayCheckoutScreen() {
           }
         } catch (err) {
            console.error('Failed to sync booking to backend', err);
-           Alert.alert('Connection Error', `Failed to connect to server at ${Platform.OS === 'android' ? '10.0.2.2' : 'localhost'}. Check your network or backend.`);
+           Alert.alert('Connection Error', 'Failed to connect to server. Check your network or backend.');
            return;
         }
 

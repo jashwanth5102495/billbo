@@ -1,9 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
-
-const API_BASE_URL = Platform.OS === 'android' 
-  ? 'http://10.0.2.2:3000/api' 
-  : 'http://localhost:3000/api';
+import { API_BASE_URL } from '../config/env';
 
 export interface Billboard {
   _id?: string;

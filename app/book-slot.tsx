@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { ShoppingCart, Clock, Info, CheckCircle, ArrowLeft } from 'lucide-react-native';
 import { useTheme } from './(tabs)/ThemeContext';
 import { CartContext } from './(tabs)/cart-context';
+import { API_BASE_URL } from '../config/env';
 
 export default function BookSlotScreen() {
   const { isDarkMode } = useTheme();
@@ -27,11 +28,7 @@ export default function BookSlotScreen() {
 
   const fetchAvailability = async () => {
     try {
-      const API_URL = Platform.OS === 'android' 
-        ? 'http://10.0.2.2:3000/api' 
-        : 'http://localhost:3000/api';
-
-      const response = await fetch(`${API_URL}/bookings/check-availability?billboardId=${billboardId}&date=${date}`);
+      const response = await fetch(`${API_BASE_URL}/bookings/check-availability?billboardId=${billboardId}&date=${date}`);
       const data = await response.json();
       
       if (data.success) {
@@ -47,11 +44,7 @@ export default function BookSlotScreen() {
 
   const fetchBillboardDetails = async () => {
     try {
-      const API_URL = Platform.OS === 'android' 
-        ? 'http://10.0.2.2:3000/api' 
-        : 'http://localhost:3000/api';
-
-      const response = await fetch(`${API_URL}/billboards/${billboardId}`);
+      const response = await fetch(`${API_BASE_URL}/billboards/${billboardId}`);
       const data = await response.json();
       
       if (response.ok) {

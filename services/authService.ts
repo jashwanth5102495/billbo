@@ -1,9 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
-
-const API_BASE_URL = Platform.OS === 'android' 
-  ? 'http://10.0.2.2:3000/api' 
-  : 'http://localhost:3000/api'; // Backend API endpoint
+import { API_BASE_URL } from '../config/env';
 
 export interface User {
   id: string;
@@ -82,7 +78,7 @@ class AuthService {
       
       // Check if it's a connection error
       if (error.message.includes('fetch') || error.message.includes('Network')) {
-        throw new Error('Cannot connect to server. Please make sure the backend is running on http://localhost:3000');
+        throw new Error('Cannot connect to server. Please check your network connection.');
       }
       
       throw error;

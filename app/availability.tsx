@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ActivityIndicator, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useTheme } from './(tabs)/ThemeContext';
+import { BACKEND_URL } from '../config/env';
 
 interface Billboard {
   _id: string;
@@ -24,9 +25,7 @@ export default function AvailabilityScreen() {
   const params = useLocalSearchParams();
   const date = params.date ? new Date(params.date as string) : null;
   
-  const API_ROOT = Platform.OS === 'android' 
-    ? 'http://10.0.2.2:3000' 
-    : 'http://localhost:3000';
+  const API_ROOT = BACKEND_URL;
   
   const [billboards, setBillboards] = useState<Billboard[]>([]);
   const [loading, setLoading] = useState(true);
