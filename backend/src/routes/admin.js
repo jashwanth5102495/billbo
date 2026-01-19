@@ -265,12 +265,64 @@ router.put('/owners/:id/billboards/:billboardId', auth, isAdmin, async (req, res
 // Get all bookings (Admin)
 router.get('/bookings', auth, isAdmin, async (req, res) => {
   try {
+    // 1. Fetch raw bookings without populate to preserve IDs
     const bookings = await Booking.find()
-      .populate('userId', 'name email phoneNumber')
-      .populate('billboardId', 'name location')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
     
-    res.json({ success: true, bookings });
+    // 2. Extract unique IDs
+    const getCleanId = (id) => {
+        if (!id) return null;
+        if (typeof id === 'object' && id._id) return id._id.toString();
+        return id.toString().trim();
+    };
+
+    const userIds = [...new Set(bookings.map(b => getCleanId(b.userId)).filter(Boolean))];
+    const billboardIds = [...new Set(bookings.map(b => getCleanId(b.billboardId)).filter(Boolean))];
+
+    // 3. Fetch related data in parallel
+    const [users, billboards, profiles] = await Promise.all([
+      User.find({ _id: { $in: userIds } }).select('name email phoneNumber username').lean(),
+      Billboard.find({ _id: { $in: billboardIds } }).select('name location').lean(),
+      BusinessProfile.find({ userId: { $in: userIds } }).select('userId businessName ownerName').lean()
+    ]);
+    
+    // 4. Create lookup maps
+    const userMap = users.reduce((acc, user) => {
+      acc[user._id.toString()] = user;
+      return acc;
+    }, {});
+
+    const billboardMap = billboards.reduce((acc, bb) => {
+      acc[bb._id.toString()] = bb;
+      return acc;
+    }, {});
+
+    const profileMap = profiles.reduce((acc, profile) => {
+      acc[profile.userId.toString()] = profile;
+      return acc;
+    }, {});
+
+    // 5. Enhance bookings
+    const enhancedBookings = bookings.map(booking => {
+      const userIdStr = getCleanId(booking.userId);
+      const billboardIdStr = getCleanId(booking.billboardId);
+      
+      const user = userMap[userIdStr] || { _id: booking.userId }; // Fallback to ID object if user missing
+      const billboard = billboardMap[billboardIdStr] || { _id: booking.billboardId };
+      const profile = profileMap[userIdStr];
+
+      return {
+        ...booking,
+        userId: user,
+        billboardId: billboard,
+        businessName: profile?.businessName,
+        ownerName: profile?.ownerName,
+        location: billboard.location || booking.location || 'Unknown Location'
+      };
+    });
+
+    res.json({ success: true, bookings: enhancedBookings });
   } catch (error) {
     console.error('Fetch all bookings error:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch bookings' });
@@ -281,6 +333,7 @@ router.get('/bookings', auth, isAdmin, async (req, res) => {
 router.get('/running-ads', auth, isAdmin, async (req, res) => {
   try {
     const now = new Date();
+    // 1. Fetch raw bookings
     const bookings = await Booking.find({
       $or: [
         { status: 'active' },
@@ -291,11 +344,62 @@ router.get('/running-ads', auth, isAdmin, async (req, res) => {
         }
       ]
     })
-    .populate('userId', 'name email phoneNumber')
-    .populate('billboardId', 'name location')
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .lean();
 
-    res.json({ success: true, bookings });
+    // 2. Extract unique IDs
+    const getCleanId = (id) => {
+        if (!id) return null;
+        if (typeof id === 'object' && id._id) return id._id.toString();
+        return id.toString().trim();
+    };
+
+    const userIds = [...new Set(bookings.map(b => getCleanId(b.userId)).filter(Boolean))];
+    const billboardIds = [...new Set(bookings.map(b => getCleanId(b.billboardId)).filter(Boolean))];
+
+    // 3. Fetch related data in parallel
+    const [users, billboards, profiles] = await Promise.all([
+      User.find({ _id: { $in: userIds } }).select('name email phoneNumber username').lean(),
+      Billboard.find({ _id: { $in: billboardIds } }).select('name location').lean(),
+      BusinessProfile.find({ userId: { $in: userIds } }).select('userId businessName ownerName').lean()
+    ]);
+    
+    // 4. Create lookup maps
+    const userMap = users.reduce((acc, user) => {
+      acc[user._id.toString()] = user;
+      return acc;
+    }, {});
+
+    const billboardMap = billboards.reduce((acc, bb) => {
+      acc[bb._id.toString()] = bb;
+      return acc;
+    }, {});
+
+    const profileMap = profiles.reduce((acc, profile) => {
+      acc[profile.userId.toString()] = profile;
+      return acc;
+    }, {});
+
+    // 5. Enhance bookings
+    const enhancedBookings = bookings.map(booking => {
+      const userIdStr = getCleanId(booking.userId);
+      const billboardIdStr = getCleanId(booking.billboardId);
+      
+      const user = userMap[userIdStr] || { _id: booking.userId };
+      const billboard = billboardMap[billboardIdStr] || { _id: booking.billboardId };
+      const profile = profileMap[userIdStr];
+
+      return {
+        ...booking,
+        userId: user,
+        billboardId: billboard,
+        businessName: profile?.businessName,
+        ownerName: profile?.ownerName,
+        location: billboard.location || booking.location || 'Unknown Location'
+      };
+    });
+
+    res.json({ success: true, bookings: enhancedBookings });
   } catch (error) {
     console.error('Fetch running ads error:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch running ads' });
@@ -338,10 +442,40 @@ router.get('/availability', auth, isAdmin, async (req, res) => {
 router.get('/users/:userId/details', auth, isAdmin, async (req, res) => {
   try {
     const { userId } = req.params;
+    // 1. Fetch bookings without populate
     const bookings = await Booking.find({ userId })
-      .populate('billboardId', 'name location')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
       
+    // 2. Fetch billboards manually
+    const getCleanId = (id) => {
+        if (!id) return null;
+        if (typeof id === 'object' && id._id) return id._id.toString();
+        return id.toString().trim();
+    };
+
+    const billboardIds = [...new Set(bookings.map(b => getCleanId(b.billboardId)).filter(Boolean))];
+    const billboards = await Billboard.find({ _id: { $in: billboardIds } })
+      .select('name location')
+      .lean();
+
+    const billboardMap = billboards.reduce((acc, bb) => {
+      acc[bb._id.toString()] = bb;
+      return acc;
+    }, {});
+
+    // 3. Attach billboard info
+    const enhancedBookings = bookings.map(booking => {
+      const billboardIdStr = getCleanId(booking.billboardId);
+      const billboard = billboardMap[billboardIdStr];
+      
+      return {
+        ...booking,
+        billboardId: billboard || { _id: booking.billboardId }, // Preserve ID if not found
+        location: billboard?.location || booking.location || 'Unknown Location'
+      };
+    });
+
     const user = await User.findById(userId).select('-password');
     const profile = await BusinessProfile.findOne({ userId });
 
@@ -351,7 +485,7 @@ router.get('/users/:userId/details', auth, isAdmin, async (req, res) => {
       activeAds: bookings.filter(b => b.status === 'active' || b.status === 'confirmed').length
     };
 
-    res.json({ success: true, bookings, user, profile, stats });
+    res.json({ success: true, bookings: enhancedBookings, user, profile, stats });
   } catch (error) {
     console.error('Fetch user details error:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch user details' });

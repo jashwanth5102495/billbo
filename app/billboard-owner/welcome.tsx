@@ -6,12 +6,14 @@ import { useTheme } from '../(tabs)/ThemeContext';
 import { LogOut, MapPin, Plus, Calendar } from 'lucide-react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { billboardService, Billboard } from '../../services/billboardService';
+import { bookingService } from '../../services/bookingService';
 
 export default function BillboardOwnerWelcomeScreen() {
   const { isDarkMode } = useTheme();
   const { logout, user } = useAuth();
   const [billboards, setBillboards] = useState<Billboard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState({ totalMoney: 0, totalSales: 0 });
 
   const fetchBillboards = async () => {
     try {
@@ -26,9 +28,23 @@ export default function BillboardOwnerWelcomeScreen() {
     }
   };
 
+  const fetchStats = async () => {
+    try {
+      const bookings = await bookingService.getOwnerBookings();
+      const totalMoney = bookings
+        .filter(b => b.paymentStatus === 'paid' || b.status === 'confirmed' || b.status === 'completed')
+        .reduce((sum, b) => sum + (b.price || 0), 0);
+      const totalSales = bookings.filter(b => ['confirmed', 'completed', 'active', 'in-progress'].includes(b.status)).length;
+      setStats({ totalMoney, totalSales });
+    } catch (error) {
+      console.error('Failed to fetch stats:', error);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       fetchBillboards();
+      fetchStats();
     }, [])
   );
 
@@ -229,6 +245,17 @@ export default function BillboardOwnerWelcomeScreen() {
           <TouchableOpacity style={styles.iconButton} onPress={handleLogout}>
             <LogOut size={20} color={isDarkMode ? '#FFFFFF' : '#111827'} />
           </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={{ flexDirection: 'row', gap: 12, paddingHorizontal: 24, marginBottom: 24 }}>
+        <View style={[styles.card, { flex: 1, flexDirection: 'column', height: 'auto', marginBottom: 0, padding: 16 }]}>
+            <Text style={{ color: isDarkMode ? '#9CA3AF' : '#6B7280', fontSize: 14, marginBottom: 8 }}>Total Revenue</Text>
+            <Text style={{ color: isDarkMode ? '#FFFFFF' : '#111827', fontSize: 24, fontWeight: 'bold' }}>₹{stats.totalMoney}</Text>
+        </View>
+        <View style={[styles.card, { flex: 1, flexDirection: 'column', height: 'auto', marginBottom: 0, padding: 16 }]}>
+            <Text style={{ color: isDarkMode ? '#9CA3AF' : '#6B7280', fontSize: 14, marginBottom: 8 }}>Total Sales</Text>
+            <Text style={{ color: isDarkMode ? '#FFFFFF' : '#111827', fontSize: 24, fontWeight: 'bold' }}>{stats.totalSales}</Text>
         </View>
       </View>
 

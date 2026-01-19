@@ -73,14 +73,6 @@ export default function OwnerBookingsScreen() {
 
         <View style={styles.detailsContainer}>
           <View style={styles.row}>
-            <Ionicons name="person-outline" size={16} color="#666" />
-            <Text style={styles.detailText}>{item.userId?.name || 'Unknown User'}</Text>
-          </View>
-          <View style={styles.row}>
-            <Ionicons name="call-outline" size={16} color="#666" />
-            <Text style={styles.detailText}>{item.userId?.phoneNumber || 'N/A'}</Text>
-          </View>
-          <View style={styles.row}>
             <Ionicons name="calendar-outline" size={16} color="#666" />
             <Text style={styles.detailText}>
               {new Date(item.startDate).toLocaleDateString()} - {new Date(item.endDate).toLocaleDateString()}
@@ -94,6 +86,16 @@ export default function OwnerBookingsScreen() {
             <Ionicons name="wallet-outline" size={16} color="#666" />
             <Text style={styles.detailText}>₹{item.price} • {item.paymentStatus.toUpperCase()}</Text>
           </View>
+          <View style={styles.row}>
+             <Ionicons name="star-outline" size={16} color="#666" />
+             <Text style={styles.detailText}>Reputation: {item.reputation || 'N/A'}</Text>
+          </View>
+          {item.videoDuration ? (
+            <View style={styles.row}>
+               <Ionicons name="videocam-outline" size={16} color="#666" />
+               <Text style={styles.detailText}>Duration: {item.videoDuration}s</Text>
+            </View>
+          ) : null}
           
           {item.content && (
             <View style={styles.contentContainer}>
@@ -151,20 +153,32 @@ export default function OwnerBookingsScreen() {
           <ActivityIndicator size="large" color="#4ADE80" />
         </View>
       ) : (
-        <FlatList
-          data={bookings}
-          renderItem={renderItem}
-          keyExtractor={(item) => item._id}
-          contentContainerStyle={styles.listContent}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4ADE80" />
-          }
-          ListEmptyComponent={
-            <View style={styles.center}>
-              <Text style={styles.emptyText}>No bookings found</Text>
+        <>
+          <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
+            <View style={styles.card}>
+              <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>
+                Ads Being Played: {bookings.filter(b => ['confirmed', 'in-progress', 'active'].includes(b.status)).length}
+              </Text>
+              <Text style={{ color: '#888', fontSize: 12, marginTop: 4 }}>
+                Total Bookings: {bookings.length}
+              </Text>
             </View>
-          }
-        />
+          </View>
+          <FlatList
+            data={bookings}
+            renderItem={renderItem}
+            keyExtractor={(item) => item._id}
+            contentContainerStyle={styles.listContent}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4ADE80" />
+            }
+            ListEmptyComponent={
+              <View style={styles.center}>
+                <Text style={styles.emptyText}>No bookings found</Text>
+              </View>
+            }
+          />
+        </>
       )}
     </View>
   );

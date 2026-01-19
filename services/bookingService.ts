@@ -30,6 +30,8 @@ export interface Booking {
     moderationStatus?: 'pending' | 'approved' | 'rejected';
     moderationNotes?: string;
   };
+  reputation?: number;
+  videoDuration?: number;
   createdAt: string;
 }
 
